@@ -4,11 +4,10 @@
 	"Description" : "An AWS Serverless Application.",
 
 	"Resources" : {
-
-		"Get" : {
-		"Type" : "AWS::Serverless::Function",
+		"Search" : {
+			"Type" : "AWS::Serverless::Function",
 			"Properties": {
-				"Handler": "mtg-services::mtg_services.Functions::Get",
+				"Handler": "mtg-services::mtg_services.Functions::Search",
 				"Runtime": "dotnetcore2.1",
 				"CodeUri": "",
 				"MemorySize": 256,
@@ -19,20 +18,36 @@
 					"PutResource": {
 						"Type": "Api",
 						"Properties": {
-							"Path": "/",
-							"Method": "GET"
+							"Path": "/mtg-services/search",
+							"Method": "POST"
+						}
+					}
+				}
+			}
+		},
+		"GetUserDecksOverview": {
+			"Type": "AWS::Serverless::Function",
+			"Properties": {
+				"Handler": "mtg-services::mtg_services.Functions::GetUserDecksOverview",
+				"Runtime": "dotnetcore2.1",
+				"CodeUri": "",
+				"MemorySize": 256,
+				"Timeout": 30,
+				"Role": null,
+				"Policies": [ "AWSLambdaBasicExecutionRole" ],
+				"Events": {
+					"PutResource": {
+						"Type": "Api",
+						"Properties": {
+							"Path": "/mtg-services/{user}/decks/overview",
+							"Method": "POST"
 						}
 					}
 				}
 			}
 		}
-
 	},
 
 	"Outputs" : {
-		"ApiURL" : {
-			"Description" : "API endpoint URL for Prod environment",
-			"Value" : { "Fn::Sub" : "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/" }
-		}
 	}
 }
