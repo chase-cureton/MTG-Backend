@@ -1,19 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <AWSProjectType>Lambda</AWSProjectType>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.Core" Version="1.1.0" />
-    <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="1.4.0" />
-    <PackageReference Include="Amazon.Lambda.APIGatewayEvents" Version="1.2.0" />
-    <PackageReference Include="AWSSDK.S3" Version="3.3.101.15" />
-    <PackageReference Include="AWSSDK.SecretsManager" Version="3.3.100.28" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.3" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\MTG\DeckInterface\" />
-    <Folder Include="Utilities\Http\Contents\" />
-  </ItemGroup>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup />
 </Project>

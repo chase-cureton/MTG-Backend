@@ -8,87 +8,17 @@ using Amazon.Lambda.Core;
 using Amazon.Lambda.APIGatewayEvents;
 using HtmlAgilityPack;
 using Newtonsoft.Json;
-using mtg_services.Models.TCG;
-using System.Net.Http;
-using mtg_services.Services.TCG;
-using mtg_services.Models.MTG.Deck;
+using MTGLambda.MTGLambda.Services.TCG.Dto;
+using MTGLambda.MTGLambda.Services.TCG;
+using MTGLambda.MTGLambda.DataClass.MTGLambdaDeck;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
-namespace mtg_services
+namespace MTGLambda
 {
     public class Functions
     {
-        
-        /// <summary>
-        /// Default constructor that Lambda will invoke.
-        /// </summary>
-        public  APIGatewayProxyResponse GetPriceAPI(APIGatewayProxyRequest request, ILambdaContext context)
-        {
-            LambdaLogger.Log(string.Format("Entering: {0}", JsonConvert.SerializeObject(request)));
-
-            try
-            {
-                HtmlWeb web = new HtmlWeb();
-
-                string set = request.PathParameters["set-name"];
-                string card = request.PathParameters["card-name"];
-
-                string url = string.Format($"https://shop.tcgplayer.com/magic/{0}/{1}", set, card);
-                var htmlDoc = web.Load(url);
-
-                //LambdaLogger.Log(string.Format("Http Response: {0}", JsonConvert.SerializeObject(htmlDoc)));
-
-                var prices = htmlDoc.DocumentNode
-                                    .Descendants()
-                                    .Where(x => x.Attributes.Contains("class") && 
-                                                (x.Attributes["class"].Value.Contains("product-offer__price") ||
-                                                 x.Attributes["class"].Value.Contains("seller-spotlight__price")));
-
-                var response = new APIGatewayProxyResponse
-                {
-                    StatusCode = (int)HttpStatusCode.OK,
-                    Body = JsonConvert.SerializeObject(prices),
-                    Headers = new Dictionary<string, string> { { "Content-Type", "text/plain" } }
-                };
-
-                LambdaLogger.Log(string.Format("Leaving: {0}", JsonConvert.SerializeObject(request)));
-
-                return response;
-            }
-            catch(Exception exp)
-            {
-                LambdaLogger.Log(string.Format("Exception occurred: {0}", exp));
-
-                return new APIGatewayProxyResponse
-                {
-                    StatusCode = (int)HttpStatusCode.InternalServerError,
-                    Body = "y u do dis?",
-                    Headers = new Dictionary<string, string> { { "Content-Type", "text/plain" } }
-                };
-            }
-        }
-
-        /// <summary>
-        /// A Lambda function to respond to HTTP Get methods from API Gateway
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns>The list of blogs</returns>
-        public APIGatewayProxyResponse Get(APIGatewayProxyRequest request, ILambdaContext context)
-        {
-            context.Logger.LogLine("Get Request\n");
-
-            var response = new APIGatewayProxyResponse
-            {
-                StatusCode = (int)HttpStatusCode.OK,
-                Body = "Hello AWS Serverless",
-                Headers = new Dictionary<string, string> { { "Content-Type", "text/plain" } }
-            };
-
-            return response;
-        }
-
         /// <summary>
         /// A wrapper function for TCG's search API.
         /// - Will return list of card details instead of ids based on search criteria
@@ -186,9 +116,9 @@ namespace mtg_services
 
                 responseContent.Add(new DeckOverviewDto()
                 {
+                    id = 1,
                     artifacts = 10,
                     creatures = 24,
-                    deckId = 1,
                     deckName = "The Harbinger (Deck #1)",
                     enchantments = 4,
                     instants = 12,
@@ -199,9 +129,9 @@ namespace mtg_services
 
                 responseContent.Add(new DeckOverviewDto()
                 {
+                    id = 2,
                     artifacts = 6,
                     creatures = 30,
-                    deckId = 2,
                     deckName = "The Weeper (Deck #2)",
                     enchantments = 4,
                     instants = 9,
