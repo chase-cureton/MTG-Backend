@@ -64,6 +64,7 @@ namespace MTGLambda.MTGLambda.Services.MTG
                 response.ErrorMessage = "Error while getting user decks.";
 
                 LambdaLogger.Log($"Leaving: GetUserDecks( { JsonConvert.SerializeObject(response) })");
+                return response;
             }
 
 
