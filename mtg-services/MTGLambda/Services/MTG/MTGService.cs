@@ -50,10 +50,7 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
             try
             {
-                var userDecks = SvcContext.Repository
-                                          .Decks
-                                          .FindAll(string.Format("userId = {0}", request.userId))
-                                          .ToList();
+                var userDecks = SvcContext.Repository.Decks.FindByUserId(request.userId);
 
                 LambdaLogger.Log($"User Decks: { JsonConvert.SerializeObject(userDecks) }");
 
