@@ -17,6 +17,11 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaDeck
         //Content
         public List<Card> DeckList { get; set; }
         public DeckTemplate Template { get; set; }
+
+        public Deck()
+        {
+            DeckList = new List<Card>();
+        }
     }
 
     public class DeckOverviewDto
