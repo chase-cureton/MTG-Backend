@@ -1,16 +1,18 @@
-﻿using System;
+﻿using Amazon.DynamoDBv2.DocumentModel;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace MTGLambda.MTGLambda.DataRepository.Dto
 {
-    public class InsertTableItemRequest
+    public class UpsertTableItemsRequest
     {
         public string Table { get; set; }
-        public string Filter { get; set; }
-        public string OrderByExpression { get; set; }
-        public int RecordCap { get; set; }
+        public List<Document> Documents { get; set; }
 
-        public string Content { get; set; }
+        public UpsertTableItemsRequest()
+        {
+            Documents = new List<Document>();
+        }
     }
 }

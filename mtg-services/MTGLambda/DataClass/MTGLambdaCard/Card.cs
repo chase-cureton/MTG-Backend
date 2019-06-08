@@ -1,12 +1,12 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using MTGLambda.MTGLambda.Helpers.Common;
+using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Text;
 
 namespace MTGLambda.MTGLambda.DataClass.MTGLambdaCard
 {
     public abstract class Card
     {
+        [PrimaryKey]
         public virtual string Name { get; set; }
         public virtual List<string> Colors { get; set; }
         public virtual string ManaCost { get; set; }

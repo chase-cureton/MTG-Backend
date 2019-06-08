@@ -1,5 +1,6 @@
 ﻿using Amazon.DynamoDBv2.DocumentModel;
 using MTGLambda.MTGLambda.DataRepository.Dto;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,6 +56,52 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
         }
 
         //TODO: Save/Delete
+        public List<T> Save(IEnumerable<T> saveItems)
+        {
+            List<T> updatedItems = new List<T>();
+
+            try
+            {
+                List<T> records = saveItems.ToList();
+
+                if (records == null || records.Count == 0)
+                    return updatedItems;
+
+                UpsertTableItemsRequest request = new UpsertTableItemsRequest
+                {
+                    Table = typeof(T).Name
+                };
+
+                foreach(T t in records)
+                {
+                    request.Documents.Add(ContextRequestEntity(t));
+                }
+
+                //Set partition key id here
+                //Need some way of reading table to see next partition key and incrementing
+
+                var response = _daoContext.UpsertTableItems(request);
+
+                if (response.IsSuccess)
+                {
+                    foreach(var tableItem in response.Documents)
+                    {
+                        updatedItems.Add(ContextResponseEntity(tableItem));
+                    }
+                }
+            }
+            catch(Exception exp)
+            {
+                throw exp;
+            }
+
+            return updatedItems;
+        }
+
+        private static Document ContextRequestEntity(T t)
+        {
+            return Document.FromJson(JsonConvert.SerializeObject(t));
+        }
 
         private static T ContextResponseEntity(Document tableItem)
         {
@@ -66,7 +113,10 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
                 if (!(tableItemProperty == null))
                 {
-                    typeof(T).GetProperty(property.Name).SetValue(t, tableItemProperty.AsString());
+                    if (tableItemProperty is Primitive)
+                        typeof(T).GetProperty(property.Name).SetValue(t, tableItemProperty.AsPrimitive());
+                    else if (tableItemProperty is PrimitiveList)
+                        typeof(T).GetProperty(property.Name).SetValue(t, tableItemProperty.AsListOfPrimitive());
                 }
             }
 
