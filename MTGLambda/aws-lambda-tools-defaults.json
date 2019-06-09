@@ -13,6 +13,6 @@
     "s3-prefix"     : "MTGLambda/",
     "template"      : "serverless.template",
     "template-parameters" : "",
-    "s3-bucket"           : "elasticbeanstalk-us-east-1-542966453150",
-    "stack-name"          : "CWS-Cloud-Formation"
+    "s3-bucket"           : "mtg-lambda-config",
+    "stack-name"          : "MTGLambda-Deploy-Stack"
 }

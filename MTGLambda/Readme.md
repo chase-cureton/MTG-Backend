@@ -37,6 +37,6 @@ Execute unit tests
 
 Deploy application
 ```
-    cd "mtg-services/src/mtg-services"
+    cd "source/repos/MTG-Backend"
     dotnet lambda deploy-serverless
 ```

@@ -107,7 +107,7 @@ namespace MTGLambda
                 Headers = new Dictionary<string, string>
                 {
                     { "Content-Type", "application/json" },
-                    { "Access-Control-Allow-Origin", "*" }
+                    //{ "Access-Control-Allow-Origin", "*" }
                 }
             };
 
@@ -161,7 +161,7 @@ namespace MTGLambda
             {
                 Headers = new Dictionary<string, string> {
                     { "Content-Type", "application/json" },
-                    { "Access-Control-Allow-Origin", "*" }
+                    //{ "Access-Control-Allow-Origin", "*" }
                 }
             };
    
@@ -215,7 +215,7 @@ namespace MTGLambda
                     StatusCode = (int)HttpStatusCode.InternalServerError,
                     Headers = new Dictionary<string, string> {
                         { "Content-Type", "application/json" },
-                        { "Access-Control-Allow-Origin", "*" }
+                        //{ "Access-Control-Allow-Origin", "*" }
                     },
                     Body = JsonConvert.SerializeObject(body)
                 };
