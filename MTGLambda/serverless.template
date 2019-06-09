@@ -7,7 +7,7 @@
 		"Search" : {
 			"Type" : "AWS::Serverless::Function",
 			"Properties": {
-				"Handler": "mtg-services::mtg_services.Functions::Search",
+				"Handler": "MTGLambda::MTGLambda.Functions::Search",
 				"Runtime": "dotnetcore2.1",
 				"CodeUri": "",
 				"MemorySize": 256,
@@ -25,10 +25,31 @@
 				}
 			}
 		},
+		"SearchCards" : {
+			"Type" : "AWS::Serverless::Function",
+			"Properties": {
+				"Handler": "MTGLambda::MTGLambda.Functions::SearchCards",
+				"Runtime": "dotnetcore2.1",
+				"CodeUri": "",
+				"MemorySize": 256,
+				"Timeout": 30,
+				"Role": null,
+				"Policies": [ "AWSLambdaBasicExecutionRole" ],
+				"Events": {
+					"PutResource": {
+						"Type": "Api",
+						"Properties": {
+							"Path": "/mtg-services/searchcards",
+							"Method": "POST"
+						}
+					}
+				}
+			}
+		},
 		"GetUserDecksOverview": {
 			"Type": "AWS::Serverless::Function",
 			"Properties": {
-				"Handler": "mtg-services::mtg_services.Functions::GetUserDecksOverview",
+				"Handler": "MTGLambda::MTGLambda.Functions::GetUserDecksOverview",
 				"Runtime": "dotnetcore2.1",
 				"CodeUri": "",
 				"MemorySize": 256,

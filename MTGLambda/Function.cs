@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 using Amazon.Lambda.Core;
 using Amazon.Lambda.APIGatewayEvents;
-using HtmlAgilityPack;
 using Newtonsoft.Json;
 using MTGLambda.MTGLambda.Services.TCG.Dto;
 using MTGLambda.MTGLambda.Services.TCG;
 using MTGLambda.MTGLambda.DataClass.MTGLambdaDeck;
+using MTGLambda.MTGLambda.Services.MTG;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -89,6 +89,61 @@ namespace MTGLambda
 
             LambdaLogger.Log($"Leaving: Search({ JsonConvert.SerializeObject(response) })");
 
+            return response;
+        }
+
+        /// <summary>
+        /// Search card function for dynamo db
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public async Task<APIGatewayProxyResponse> SearchCards(APIGatewayProxyRequest request, ILambdaContext context)
+        {
+            LambdaLogger.Log($"Entering: SearchCards({ JsonConvert.SerializeObject(request) })");
+
+            var response = new APIGatewayProxyResponse()
+            {
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json" },
+                    { "Access-Control-Allow-Origin", "*" }
+                }
+            };
+
+            try
+            {
+                var mtgService = new MTGService();
+                var card = mtgService.GetCardFromName("Opt");
+
+                response.Body = JsonConvert.SerializeObject(card);
+                response.StatusCode = (int)HttpStatusCode.OK;
+            }
+            catch(Exception exp)
+            {
+                LambdaLogger.Log($"Error: { exp }");
+
+                Dictionary<string, string> body = new Dictionary<string, string>()
+                {
+                    { "Message", "y u breaking my stuff?" },
+                    { "Error", $"This is all you get, here's your peasant error: { exp.Message }" }
+                };
+
+                var errorResponse = new APIGatewayProxyResponse
+                {
+                    StatusCode = (int)HttpStatusCode.InternalServerError,
+                    Headers = new Dictionary<string, string> {
+                        { "Content-Type", "application/json" },
+                        { "Access-Control-Allow-Origin", "*" }
+                    },
+                    Body = JsonConvert.SerializeObject(body)
+                };
+
+                LambdaLogger.Log($"Leaving: SearchCards({ JsonConvert.SerializeObject(errorResponse) })");
+                return errorResponse;
+            }
+
+            LambdaLogger.Log($"Leaving: SearchCards({ JsonConvert.SerializeObject(response) })");
             return response;
         }
 

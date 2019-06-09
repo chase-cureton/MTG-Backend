@@ -1,4 +1,5 @@
 ﻿using Amazon.Lambda.Core;
+using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
 using MTGLambda.MTGLambda.Services.Common;
 using MTGLambda.MTGLambda.Services.MTG.Dto;
 using Newtonsoft.Json;
@@ -71,6 +72,27 @@ namespace MTGLambda.MTGLambda.Services.MTG
             LambdaLogger.Log($"Leaving: GetUserDecks( { JsonConvert.SerializeObject(response) })");
 
             return response;
+        }
+
+        public Card GetCardFromName(string name)
+        {
+            LambdaLogger.Log($"Entering: GetCardFromName({name})");
+
+            Card responseCard = null;
+
+            try
+            {
+                responseCard = SvcContext.Repository.Cards.FindByName(name);
+
+                LambdaLogger.Log($"Retrieved Card: { JsonConvert.SerializeObject(responseCard) }");
+            }
+            catch(Exception exp)
+            {
+                LambdaLogger.Log($"Error: { exp }");
+            }
+
+            LambdaLogger.Log($"Leaving: GetCardFromName({ JsonConvert.SerializeObject(responseCard) })");
+            return responseCard;
         }
 
         public void SaveUserDeck()
