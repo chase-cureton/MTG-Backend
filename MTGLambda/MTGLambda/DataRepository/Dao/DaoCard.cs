@@ -1,4 +1,6 @@
-﻿using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
+﻿using Amazon.Lambda.Core;
+using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +14,13 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
         public Card FindByName(string name)
         {
-            return FindAll(string.Format("Name = {0}", name)).FirstOrDefault();
+            LambdaLogger.Log($"Entering: FindByName({name})");
+
+            var cards = FindAll(string.Format("Name = {0}", name)).FirstOrDefault();
+
+            LambdaLogger.Log($"Leaving: FindByName({ JsonConvert.SerializeObject(cards) })");
+
+            return cards;
         }
 
         public IEnumerable<Card> FindByColors(List<string> colors)

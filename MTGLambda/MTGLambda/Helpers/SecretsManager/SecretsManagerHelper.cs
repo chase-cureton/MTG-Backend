@@ -23,12 +23,12 @@ namespace MTGLambda.MTGLambda.Helpers.SecretsManager
 
         public static string GetS3SecretValue(string type)
         {
-            LambdaLogger.Log($"Entering: GetS3SecretValue({ type }");
+            LambdaLogger.Log($"Entering: GetS3SecretValue({ type })");
             string response = string.Empty;
 
             GetSecretValueRequest request = new GetSecretValueRequest
             {
-                SecretId = type == "key" ? "S3_Key" : "S3_Secret",
+                SecretId = "arn:aws:secretsmanager:us-east-1:542966453150:secret:AWS_Access-nBXyBQ",
                 VersionStage = "AWSCURRENT"
             };
 
@@ -48,19 +48,25 @@ namespace MTGLambda.MTGLambda.Helpers.SecretsManager
 
             if (!string.IsNullOrWhiteSpace(secretResponse.SecretString))
             {
-                response = secretResponse.SecretString;
+                LambdaLogger.Log($"Secret String Response: { secretResponse.SecretString }");
 
-                LambdaLogger.Log($"Secret String Response: { response }");
+                var secret = JsonConvert.DeserializeObject<Dictionary<string, string>>(secretResponse.SecretString);
+
+                response = secret[type];
             }
             else
             {
                 StreamReader reader = new StreamReader(secretResponse.SecretBinary);
-                response = Encoding.UTF8.GetString(Convert.FromBase64String(reader.ReadToEnd()));
+                var secretString = Encoding.UTF8.GetString(Convert.FromBase64String(reader.ReadToEnd()));
+
+                var secret = JsonConvert.DeserializeObject<Dictionary<string, string>>(secretString);
+
+                response = secret[type];
 
                 LambdaLogger.Log($"Secret Binary Response: { response }");
             }
 
-            LambdaLogger.Log($"Leaving: GetS3SecretValue({response}");
+            LambdaLogger.Log($"Leaving: GetS3SecretValue({response})");
             return response;
         }
     }

@@ -82,6 +82,9 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
             try
             {
+                LambdaLogger.Log($"Service Context: { JsonConvert.SerializeObject(SvcContext) }");
+
+                LambdaLogger.Log($"Repository: { JsonConvert.SerializeObject(SvcContext.Repository) }");
                 responseCard = SvcContext.Repository.Cards.FindByName(name);
 
                 LambdaLogger.Log($"Retrieved Card: { JsonConvert.SerializeObject(responseCard) }");

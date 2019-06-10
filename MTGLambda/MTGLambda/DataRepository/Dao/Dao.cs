@@ -1,4 +1,5 @@
 ﻿using Amazon.DynamoDBv2.DocumentModel;
+using Amazon.Lambda.Core;
 using MTGLambda.MTGLambda.DataRepository.Dto;
 using Newtonsoft.Json;
 using System;
@@ -35,6 +36,8 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
         public IEnumerable<T> FindAll(string filter, string orderByExpression, int recordCap)
         {
+            LambdaLogger.Log($"Entering: FindAll({filter})");
+
             var request = new LoadTableItemsRequest
             {
                 Filter = filter,
@@ -45,6 +48,8 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             };
 
             var response = _daoContext.LoadTableItems(request);
+
+            LambdaLogger.Log($"Load Table Items response: { JsonConvert.SerializeObject(response) }");
 
             if (response.IsSuccess)
             {

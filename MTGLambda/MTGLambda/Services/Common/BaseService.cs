@@ -23,5 +23,10 @@ namespace MTGLambda.MTGLambda.Services.Common
     public class ServiceContext
     {
         public DaoFactory Repository { get; set; }
+
+        public ServiceContext()
+        {
+            Repository = new DaoFactory();
+        }
     }
 }

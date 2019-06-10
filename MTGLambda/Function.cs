@@ -11,6 +11,7 @@ using MTGLambda.MTGLambda.Services.TCG.Dto;
 using MTGLambda.MTGLambda.Services.TCG;
 using MTGLambda.MTGLambda.DataClass.MTGLambdaDeck;
 using MTGLambda.MTGLambda.Services.MTG;
+using MTGLambda.MTGLambda.Services;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -98,7 +99,7 @@ namespace MTGLambda
         /// <param name="request"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        public async Task<APIGatewayProxyResponse> SearchCards(APIGatewayProxyRequest request, ILambdaContext context)
+        public APIGatewayProxyResponse SearchCards(APIGatewayProxyRequest request, ILambdaContext context)
         {
             LambdaLogger.Log($"Entering: SearchCards({ JsonConvert.SerializeObject(request) })");
 
@@ -113,8 +114,12 @@ namespace MTGLambda
 
             try
             {
-                var mtgService = new MTGService();
-                var card = mtgService.GetCardFromName("Opt");
+                LambdaLogger.Log($"About to search for card...");
+
+                var card = ServiceFactory.GetService<MTGService>()
+                                         .GetCardFromName("Opt");
+
+                LambdaLogger.Log($"Card retrieved => card: { JsonConvert.SerializeObject(card) }");
 
                 response.Body = JsonConvert.SerializeObject(card);
                 response.StatusCode = (int)HttpStatusCode.OK;
