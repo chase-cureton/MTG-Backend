@@ -1,5 +1,6 @@
 ﻿using Amazon;
 using Amazon.DynamoDBv2;
+using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Lambda.Core;
@@ -17,12 +18,20 @@ namespace MTGLambda.MTGLambda.Helpers.DynamoDb
     public static class DynamoDbHelper
     {
         private static AmazonDynamoDBClient _client;
+        private static DynamoDBContext _context;
 
         static DynamoDbHelper()
         {
             _client = new AmazonDynamoDBClient(SecretsManagerHelper.GetS3SecretValue("key"), 
                                               SecretsManagerHelper.GetS3SecretValue("secret"), 
                                               RegionEndpoint.USEast1);
+
+            _context = new DynamoDBContext(_client);
+        }
+
+        public static AmazonDynamoDBClient GetClient()
+        {
+            return _client;
         }
 
         /// <summary>
@@ -162,6 +171,73 @@ namespace MTGLambda.MTGLambda.Helpers.DynamoDb
                 LambdaLogger.Log($"Error: { exp }");
             }
         }
+
+        /// <summary>
+        /// Load record given primary key and hash (sort) key
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="primaryKey"></param>
+        /// <param name="hashKey"></param>
+        /// <returns></returns>
+        public static T Load<T>(string primaryKey, string hashKey)
+        {
+            return _context.LoadAsync<T>(primaryKey, hashKey).Result;
+        }
+
+        /// <summary>
+        /// Save for individual item
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="t"></param>
+        public static void Save<T>(T t)
+        {
+            var batch = _context.CreateBatchWrite<T>();
+            batch.AddPutItem(t);
+
+            batch.ExecuteAsync();
+        }
+
+        /// <summary>
+        /// Save for multiple items
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        public static void Save<T>(IEnumerable<T> list)
+        {
+            //Adds list of items to put request
+            var batch = _context.CreateBatchWrite<T>();
+            batch.AddPutItems(list);
+
+            batch.ExecuteAsync();
+        }
+
+        /// <summary>
+        /// Scans table and returns results based on conditions
+        /// Note: Only to be used for small record size tables
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="conditions"></param>
+        /// <returns></returns>
+        public static IEnumerable<T> Scan<T>(List<ScanCondition> conditions)
+        {
+            List<T> response = new List<T>();
+
+            var searchEngine = _context.ScanAsync<T>(conditions);
+            var items = searchEngine.GetNextSetAsync();
+
+            response = items.Result;
+
+            while (!searchEngine.IsDone)
+            {
+                items = searchEngine.GetNextSetAsync();
+
+                response.AddRange(items.Result);
+            }
+
+            return response;
+        }
+
+        //TODO: Query
 
         #region Helper methods
         /// <summary>

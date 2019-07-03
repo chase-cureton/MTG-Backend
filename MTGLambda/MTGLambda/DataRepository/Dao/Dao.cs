@@ -1,4 +1,5 @@
-﻿using Amazon.DynamoDBv2.DocumentModel;
+﻿using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.Lambda.Core;
 using MTGLambda.MTGLambda.DataRepository.Dto;
 using Newtonsoft.Json;
@@ -31,10 +32,15 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
         public IEnumerable<T> FindAll(string filter)
         {
-            return FindAll(filter, string.Empty, 0);
+            return FindAll(filter, new List<ScanCondition>(), string.Empty, 0);
         }
 
-        public IEnumerable<T> FindAll(string filter, string orderByExpression, int recordCap)
+        public IEnumerable<T> FindAll(List<ScanCondition> conditions)
+        {
+            return FindAll(string.Empty, conditions, string.Empty, 0);
+        }
+
+        public IEnumerable<T> FindAll(string filter, List<ScanCondition> conditions, string orderByExpression, int recordCap)
         {
             LambdaLogger.Log($"Entering: FindAll({filter})");
 
@@ -44,20 +50,24 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
                 OrderByExpression = orderByExpression,
                 RecordCap = recordCap,
                 Table = typeof(T).Name, //Name of table will be name of model
-                Properties = typeof(T).GetProperties().Select(x => x.Name).ToList()
+                Properties = typeof(T).GetProperties().Select(x => x.Name).ToList(),
+                Type = typeof(T),
+                Conditions = conditions
             };
 
-            var response = _daoContext.LoadTableItems(request);
+            var response = _daoContext.LoadTableItems<T>(request);
 
             LambdaLogger.Log($"Load Table Items response: { JsonConvert.SerializeObject(response) }");
 
-            if (response.IsSuccess)
-            {
-                foreach(var tableItem in response.TableItems)
-                {
-                    yield return ContextResponseEntity(tableItem);
-                }
-            }
+            return response;
+
+            //if (response != null)
+            //{
+            //    foreach(var tableItem in response.TableItems)
+            //    {
+            //        yield return ContextResponseEntity(tableItem);
+            //    }
+            //
         }
 
         //TODO: Save/Delete

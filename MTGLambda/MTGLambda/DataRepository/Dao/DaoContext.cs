@@ -1,4 +1,5 @@
-﻿using Amazon.DynamoDBv2.DocumentModel;
+﻿using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.Lambda.Core;
 using MTGLambda.MTGLambda.DataRepository.Dto;
 using MTGLambda.MTGLambda.Helpers.DynamoDb;
@@ -52,33 +53,31 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
-        public LoadTableItemsResponse LoadTableItems(LoadTableItemsRequest request)
+        public IEnumerable<T> LoadTableItems<T>(LoadTableItemsRequest request)
         {
             LambdaLogger.Log($"Entering: LoadTableItems({ JsonConvert.SerializeObject(request) }");
 
-            var response = new LoadTableItemsResponse
-            {
-                IsSuccess = true
-            };
+            var response = new List<T>();
 
             try
             {
                 SearchDocumentsRequest searchDocumentsRequest = CreateSearchDocumentsRequest(request);
 
-                var tableItems = DynamoDbHelper.SearchDocuments(searchDocumentsRequest);
+                //var tableItems = DynamoDbHelper.SearchDocuments(searchDocumentsRequest); 
+
+                //TODOING: build conditions from request filter
+
+                var tableItems = DynamoDbHelper.Scan<T>(request.Conditions);
 
                 //TODO: Handle order by expression and record cap here
 
                 //Use request to hit dynamodb
                 //If has an id, then can use dynamodb GetItem, else need to query based on filter
-                response.TableItems = tableItems.ToList();
+                response = tableItems.ToList();
             }
             catch (Exception exp)
             {
                 LambdaLogger.Log($"Error: { exp }");
-
-                response.IsSuccess = false;
-                response.ErrorMessage = "Error while loading table items.";
 
                 LambdaLogger.Log($"Leaving: LoadTableItems({ JsonConvert.SerializeObject(response) }");
                 return response;

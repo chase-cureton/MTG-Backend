@@ -37,12 +37,15 @@ namespace MTGLambda.MTGLambda.Services.MTG.MTGCard
                 long toughness = long.Parse(request.CardAttributes["Toughness"]);
 
                 //TODO: abstract common card properties
-                string manaCost = request.CardAttributes["ManaCost"];
+                int manaCost = int.Parse(request.CardAttributes["ManaCost"]);
                 string cardText = request.CardAttributes["CardText"];
 
-                List<string> colors = request.CardAttributes["Colors"]
-                                             .Split(',')
-                                             .ToList();
+                //List<string> colors = request.CardAttributes["Colors"]
+                //                             .Split(',')
+                //                             .ToList(); 
+
+                Dictionary<string, long> colors = JsonConvert.DeserializeObject<Dictionary<string, long>>(request.CardAttributes["Colors"]);
+                                                  
 
                 List<string> keywords = request.CardAttributes["Keywords"]
                                                .Split(',')

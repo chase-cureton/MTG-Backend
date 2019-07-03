@@ -1,19 +1,31 @@
-﻿using MTGLambda.MTGLambda.Helpers.Common;
+﻿using Amazon.DynamoDBv2.DataModel;
+using MTGLambda.MTGLambda.Helpers.Common;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
 namespace MTGLambda.MTGLambda.DataClass.MTGLambdaCard
 {
-    public abstract class Card
+    [DynamoDBTable("Card")]
+    public class Card
     {
-        [PrimaryKey]
+        [DynamoDBHashKey]
         public virtual string Name { get; set; }
-        public virtual List<string> Colors { get; set; }
-        public virtual string ManaCost { get; set; }
+        [DynamoDBRangeKey]
+        public virtual int ManaCost { get; set; }
+        [DynamoDBProperty]
+        public virtual Dictionary<string, long> Colors { get; set; }
+        [DynamoDBProperty]
         public virtual string CardText { get; set; }
+        [DynamoDBProperty]
         public virtual string Type { get; set; }
-
+        [DynamoDBProperty]
         public virtual List<string> Keywords { get; set; }
+        
+        public Card()
+        {
+            Colors = new Dictionary<string, long>();
+            Keywords = new List<string>();
+        }
 
         public virtual string DescribeOverview()
         {
