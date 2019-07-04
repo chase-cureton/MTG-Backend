@@ -42,7 +42,7 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
         public IEnumerable<T> FindAll(string filter, List<ScanCondition> conditions, string orderByExpression, int recordCap)
         {
-            LambdaLogger.Log($"Entering: FindAll({filter})");
+            LambdaLogger.Log($"Entering: FindAll({JsonConvert.SerializeObject(conditions)})");
 
             var request = new LoadTableItemsRequest
             {

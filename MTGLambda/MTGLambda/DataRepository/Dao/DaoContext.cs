@@ -61,7 +61,7 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             try
             {
-                SearchDocumentsRequest searchDocumentsRequest = CreateSearchDocumentsRequest(request);
+                //SearchDocumentsRequest searchDocumentsRequest = CreateSearchDocumentsRequest(request);
 
                 //var tableItems = DynamoDbHelper.SearchDocuments(searchDocumentsRequest); 
 

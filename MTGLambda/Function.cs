@@ -114,10 +114,12 @@ namespace MTGLambda
 
             try
             {
-                LambdaLogger.Log($"About to search for card...");
+                var requestParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.Body);
+
+                LambdaLogger.Log($"About to search for card...{requestParams["Name"]}");
 
                 var card = ServiceFactory.GetService<MTGService>()
-                                         .GetCardFromName("Opt");
+                                         .GetCardFromName(requestParams["Name"]);
 
                 LambdaLogger.Log($"Card retrieved => card: { JsonConvert.SerializeObject(card) }");
 
