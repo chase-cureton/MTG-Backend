@@ -71,7 +71,7 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
         }
 
         //TODO: Save/Delete
-        public List<T> Save(IEnumerable<T> saveItems)
+        public void Save(IEnumerable<T> saveItems)
         {
             List<T> updatedItems = new List<T>();
 
@@ -79,38 +79,12 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             {
                 List<T> records = saveItems.ToList();
 
-                if (records == null || records.Count == 0)
-                    return updatedItems;
-
-                UpsertTableItemsRequest request = new UpsertTableItemsRequest
-                {
-                    Table = typeof(T).Name
-                };
-
-                foreach(T t in records)
-                {
-                    request.Documents.Add(ContextRequestEntity(t));
-                }
-
-                //Set partition key id here
-                //Need some way of reading table to see next partition key and incrementing
-
-                var response = _daoContext.UpsertTableItems(request);
-
-                if (response.IsSuccess)
-                {
-                    foreach(var tableItem in response.Documents)
-                    {
-                        updatedItems.Add(ContextResponseEntity(tableItem));
-                    }
-                }
+                _daoContext.SaveTableItems<T>(saveItems);
             }
             catch(Exception exp)
             {
                 throw exp;
             }
-
-            return updatedItems;
         }
 
         private static Document ContextRequestEntity(T t)

@@ -87,11 +87,25 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             return response;
         }
 
-        /// <summary>
-        /// Inserts item into table from DynamoDb
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        public void SaveTableItems<T>(IEnumerable<T> items)
+        {
+            LambdaLogger.Log($"Entering: SaveTableItems({ JsonConvert.SerializeObject(items) }");
+
+            try
+            {
+                DynamoDbHelper.Save<T>(items);
+            }
+            catch(Exception exp)
+            {
+                LambdaLogger.Log($"Error occurred during SaveTableItems({ JsonConvert.SerializeObject(items) }) - Exception: { exp }");
+                throw;
+            }
+
+            LambdaLogger.Log($"Leaving: SaveTableItems({ JsonConvert.SerializeObject(items) }");
+        }
+
+
+        //DONUT USE
         public UpsertTableItemResponse UpsertTableItems(UpsertTableItemsRequest request)
         {
             LambdaLogger.Log($"Entering: UpsertTableItems({ JsonConvert.SerializeObject(request) }");
@@ -104,7 +118,7 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             try
             {
                 //First scan table to see which documents already exist
-
+                
 
                 //Need dynamo db helper method to write
                 DynamoDbHelper.BatchWriteDocuments(request.Table, request.Documents);

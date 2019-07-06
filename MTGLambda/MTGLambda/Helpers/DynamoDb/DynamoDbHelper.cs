@@ -194,7 +194,8 @@ namespace MTGLambda.MTGLambda.Helpers.DynamoDb
             var batch = _context.CreateBatchWrite<T>();
             batch.AddPutItem(t);
 
-            batch.ExecuteAsync();
+            _context.ExecuteBatchWriteAsync(new BatchWrite[] { batch });
+            //batch.ExecuteAsync();
         }
 
         /// <summary>
@@ -208,7 +209,8 @@ namespace MTGLambda.MTGLambda.Helpers.DynamoDb
             var batch = _context.CreateBatchWrite<T>();
             batch.AddPutItems(list);
 
-            batch.ExecuteAsync();
+            _context.ExecuteBatchWriteAsync(new BatchWrite[] { batch });
+            //batch.ExecuteAsync();
         }
 
         /// <summary>

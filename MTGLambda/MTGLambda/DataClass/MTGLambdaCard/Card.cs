@@ -8,7 +8,7 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaCard
     [DynamoDBTable("Card")]
     public class Card
     {
-        [DynamoDBHashKey]
+        [DynamoDBProperty]
         public virtual string Name { get; set; }
         [DynamoDBRangeKey]
         public virtual int ManaCost { get; set; }
@@ -16,10 +16,14 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaCard
         public virtual Dictionary<string, long> Colors { get; set; }
         [DynamoDBProperty]
         public virtual string CardText { get; set; }
-        [DynamoDBProperty]
+        [DynamoDBHashKey]
         public virtual string Type { get; set; }
         [DynamoDBProperty]
         public virtual List<string> Keywords { get; set; }
+        [DynamoDBProperty]
+        public virtual int Power { get; set; }
+        [DynamoDBProperty]
+        public virtual int Toughness { get; set; }
         
         public Card()
         {

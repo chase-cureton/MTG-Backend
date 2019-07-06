@@ -12,6 +12,7 @@ using MTGLambda.MTGLambda.Services.TCG;
 using MTGLambda.MTGLambda.DataClass.MTGLambdaDeck;
 using MTGLambda.MTGLambda.Services.MTG;
 using MTGLambda.MTGLambda.Services;
+using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -116,12 +117,37 @@ namespace MTGLambda
             {
                 var requestParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.Body);
 
+                var MTGService = ServiceFactory.GetService<MTGService>();
+
                 LambdaLogger.Log($"About to search for card...{requestParams["Name"]}");
 
-                var card = ServiceFactory.GetService<MTGService>()
-                                         .GetCardFromName(requestParams["Name"]);
+                var card = MTGService.GetCardFromName(requestParams["Name"]);
 
                 LambdaLogger.Log($"Card retrieved => card: { JsonConvert.SerializeObject(card) }");
+
+                var new_card = new Card
+                {
+                    Name = "Jhoira, Weatherlight Captain",
+                    CardText = "Whenever you cast a historic spell, draw a card.",
+                    Colors = new Dictionary<string, long>
+                    {
+                        { "Blue", 1 },
+                        { "Red", 1 },
+                        { "Colorless", 2 }
+                    },
+                    Keywords = new List<string>
+                    {
+                        "Card Draw"
+                    },
+                    ManaCost = 4,
+                    Type = "legendary creature",
+                    Power = 3,
+                    Toughness = 3
+                };
+
+                LambdaLogger.Log($"About to save card...{ JsonConvert.SerializeObject(new_card) }");
+
+                MTGService.SaveCard(new_card);
 
                 response.Body = JsonConvert.SerializeObject(card);
                 response.StatusCode = (int)HttpStatusCode.OK;

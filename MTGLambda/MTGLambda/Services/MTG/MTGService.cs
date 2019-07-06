@@ -74,6 +74,11 @@ namespace MTGLambda.MTGLambda.Services.MTG
             return response;
         }
 
+        /// <summary>
+        /// Retrieve card by name from underlying DynamoDb table
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public Card GetCardFromName(string name)
         {
             LambdaLogger.Log($"Entering: GetCardFromName({name})");
@@ -82,11 +87,6 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
             try
             {
-                LambdaLogger.Log($"Service Context: { JsonConvert.SerializeObject(SvcContext) }");
-
-                LambdaLogger.Log($"Repository: { JsonConvert.SerializeObject(SvcContext.Repository) }");
-
-                //responseCard = SvcContext.Repository.Cards.FindByName(name, "1");
                 responseCard = SvcContext.Repository
                                          .Cards
                                          .FindFromName(name)
@@ -101,6 +101,29 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
             LambdaLogger.Log($"Leaving: GetCardFromName({ JsonConvert.SerializeObject(responseCard) })");
             return responseCard;
+        }
+
+        public void SaveCard(Card card)
+        {
+            LambdaLogger.Log($"Entering: SaveCard({ JsonConvert.SerializeObject(card) })");
+
+            try
+            {
+                var cardList = new List<Card>
+                {
+                    card
+                };
+
+                SvcContext.Repository
+                          .Cards
+                          .Save(cardList);
+            }
+            catch (Exception exp)
+            {
+                LambdaLogger.Log($"Error: { exp }");
+            }
+
+            LambdaLogger.Log($"Leaving: SaveCard({ JsonConvert.SerializeObject(card) })");
         }
 
         public void SaveUserDeck()
