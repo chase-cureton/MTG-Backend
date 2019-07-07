@@ -13,6 +13,7 @@
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.101.22" />
     <PackageReference Include="AWSSDK.S3" Version="3.3.102.12" />
     <PackageReference Include="AWSSDK.SecretsManager" Version="3.3.100.31" />
+    <PackageReference Include="MtgApiManager.Lib" Version="1.2.1" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="MTGLambdaDocuments\" />

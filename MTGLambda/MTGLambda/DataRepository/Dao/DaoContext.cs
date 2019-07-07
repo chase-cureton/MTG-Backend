@@ -55,7 +55,7 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
         /// <returns></returns>
         public IEnumerable<T> LoadTableItems<T>(LoadTableItemsRequest request)
         {
-            LambdaLogger.Log($"Entering: LoadTableItems({ JsonConvert.SerializeObject(request) }");
+            //LambdaLogger.Log($"Entering: LoadTableItems({ JsonConvert.SerializeObject(request) }");
 
             var response = new List<T>();
 
@@ -79,17 +79,17 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             {
                 LambdaLogger.Log($"Error: { exp }");
 
-                LambdaLogger.Log($"Leaving: LoadTableItems({ JsonConvert.SerializeObject(response) }");
+                //LambdaLogger.Log($"Leaving: LoadTableItems({ JsonConvert.SerializeObject(response) }");
                 return response;
             }
 
-            LambdaLogger.Log($"Leaving: LoadTableItems({ JsonConvert.SerializeObject(response) }");
+            //LambdaLogger.Log($"Leaving: LoadTableItems({ JsonConvert.SerializeObject(response) }");
             return response;
         }
 
         public void SaveTableItems<T>(IEnumerable<T> items)
         {
-            LambdaLogger.Log($"Entering: SaveTableItems({ JsonConvert.SerializeObject(items) }");
+            //LambdaLogger.Log($"Entering: SaveTableItems({ JsonConvert.SerializeObject(items) }");
 
             try
             {
@@ -101,7 +101,7 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
                 throw;
             }
 
-            LambdaLogger.Log($"Leaving: SaveTableItems({ JsonConvert.SerializeObject(items) }");
+            //LambdaLogger.Log($"Leaving: SaveTableItems({ JsonConvert.SerializeObject(items) }");
         }
 
 

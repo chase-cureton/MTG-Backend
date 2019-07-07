@@ -207,7 +207,7 @@ namespace MTGLambda.MTGLambda.Helpers.DynamoDb
         {
             //Adds list of items to put request
             var batch = _context.CreateBatchWrite<T>();
-            batch.AddPutItems(list);
+            batch.AddPutItems(list.ToList());
 
             _context.ExecuteBatchWriteAsync(new BatchWrite[] { batch });
             //batch.ExecuteAsync();

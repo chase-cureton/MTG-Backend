@@ -16,13 +16,13 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaCard
 
         public CreatureCard()
         {
-            Colors = new Dictionary<string, long>();
+            Colors = new Dictionary<string, int>();
             Keywords = new List<string>();
         }
 
         public CreatureCard(long power, long toughness)
         {
-            Colors = new Dictionary<string, long>();
+            Colors = new Dictionary<string, int>();
             Keywords = new List<string>();
 
             Power = power;
