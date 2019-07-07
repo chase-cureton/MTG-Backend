@@ -15,9 +15,6 @@ namespace MTGLambda.MTGLambda.Services.MTG
 {
     public class ImportService : BaseService
     {
-        //Import cards by set?
-
-        //Import cards by type?
         /// <summary>
         /// Deprecated - DONUT USE
         /// - Really just used to grab card info initially
@@ -68,6 +65,12 @@ namespace MTGLambda.MTGLambda.Services.MTG
             //LambdaLogger.Log($"Page Results: { JsonConvert.SerializeObject(pageResults.Value.GetRange(1, 10)) }");
         }
 
+        /// <summary>
+        /// Imports cards from S3 jsons
+        /// - Imports for a single page
+        /// </summary>
+        /// <param name="page"></param>
+        /// <param name="pageSize"></param>
         public void ImportCards(int page, int pageSize)
         {
             LambdaLogger.Log($"Entering: ImportCards({page}, {pageSize})");
@@ -116,6 +119,14 @@ namespace MTGLambda.MTGLambda.Services.MTG
             LambdaLogger.Log($"Leaving: ImportCards({page}, {pageSize})");
         }
 
+        /// <summary>
+        /// Imports cards from S3 jsons
+        /// - Imports from range of pages
+        /// * 1 - 5, 6 - 10 (imports to avoid timeout issues)
+        /// </summary>
+        /// <param name="pageStart"></param>
+        /// <param name="pageEnd"></param>
+        /// <param name="pageSize"></param>
         public void ImportCards(int pageStart, int pageEnd, int pageSize)
         {
             LambdaLogger.Log($"Entering: ImportCards({pageStart}, { pageEnd }, {pageSize})");
