@@ -1,5 +1,4 @@
 # MTG-Backend
-=======
 
 Magic the Gathering Deck Building Tool
 
