@@ -16,7 +16,7 @@ namespace MTGLambda.MTGLambda.Services.MTG
     public class ImportService : BaseService
     {
         /// <summary>
-        /// Deprecated - DONUT USE
+        /// Deprecated - DONUT USE (will be repurposed to grab from API to S3)
         /// - Really just used to grab card info initially
         /// - Then will read from S3 to db
         /// </summary>
@@ -122,7 +122,7 @@ namespace MTGLambda.MTGLambda.Services.MTG
         /// <summary>
         /// Imports cards from S3 jsons
         /// - Imports from range of pages
-        /// * 1 - 5, 6 - 10 (imports to avoid timeout issues)
+        /// Use: 1 - 5, 6 - 10 (range of page imports to avoid timeout issues)
         /// </summary>
         /// <param name="pageStart"></param>
         /// <param name="pageEnd"></param>

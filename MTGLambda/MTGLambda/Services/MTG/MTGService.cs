@@ -79,28 +79,30 @@ namespace MTGLambda.MTGLambda.Services.MTG
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public Card GetCardFromName(string name)
+        public List<Card> GetCardsFromName(string name)
         {
             LambdaLogger.Log($"Entering: GetCardFromName({name})");
 
-            Card responseCard = null;
+            List<Card> responseCards = null;
 
             try
             {
-                responseCard = SvcContext.Repository
-                                         .Cards
-                                         .FindFromName(name)
-                                         .FirstOrDefault();
+                responseCards = SvcContext.Repository
+                                          .Cards
+                                          .FindFromName(name)
+                                          .GroupBy(x => x.Name)
+                                          .Select(x => x.First())
+                                          .ToList();
 
-                LambdaLogger.Log($"Retrieved Card: { JsonConvert.SerializeObject(responseCard) }");
+                LambdaLogger.Log($"Retrieved Card: { JsonConvert.SerializeObject(responseCards) }");
             }
             catch(Exception exp)
             {
                 LambdaLogger.Log($"Error: { exp }");
             }
 
-            LambdaLogger.Log($"Leaving: GetCardFromName({ JsonConvert.SerializeObject(responseCard) })");
-            return responseCard;
+            LambdaLogger.Log($"Leaving: GetCardFromName({ JsonConvert.SerializeObject(responseCards) })");
+            return responseCards;
         }
 
         public void SaveCard(Card card)

@@ -41,7 +41,7 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
         {
             var conditions = new List<ScanCondition>
             {
-                new ScanCondition("Name", ScanOperator.Equal, name)
+                new ScanCondition("Name", ScanOperator.BeginsWith, name)
             };
 
             return FindAll(conditions);

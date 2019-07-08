@@ -109,7 +109,7 @@ namespace MTGLambda
                 Headers = new Dictionary<string, string>
                 {
                     { "Content-Type", "application/json" },
-                    //{ "Access-Control-Allow-Origin", "*" }
+                    { "Access-Control-Allow-Origin", "*" }
                 }
             };
 
@@ -121,35 +121,11 @@ namespace MTGLambda
 
                 LambdaLogger.Log($"About to search for card...{requestParams["Name"]}");
 
-                var card = MTGService.GetCardFromName(requestParams["Name"]);
+                var cards = MTGService.GetCardsFromName(requestParams["Name"]);
 
-                LambdaLogger.Log($"Card retrieved => card: { JsonConvert.SerializeObject(card) }");
+                LambdaLogger.Log($"Cards retrieved => cards: { JsonConvert.SerializeObject(cards) }");
 
-                var new_card = new Card
-                {
-                    Name = "Jhoira, Weatherlight Captain",
-                    CardText = "Whenever you cast a historic spell, draw a card.",
-                    Colors = new Dictionary<string, int>
-                    {
-                        { "Blue", 1 },
-                        { "Red", 1 },
-                        { "Colorless", 2 }
-                    },
-                    Keywords = new List<string>
-                    {
-                        "Card Draw"
-                    },
-                    ManaCost = 4,
-                    Type = "legendary creature",
-                    Power = "3",
-                    Toughness = "3"
-                };
-
-                LambdaLogger.Log($"About to save card...{ JsonConvert.SerializeObject(new_card) }");
-
-                MTGService.SaveCard(new_card);
-
-                response.Body = JsonConvert.SerializeObject(card);
+                response.Body = JsonConvert.SerializeObject(cards);
                 response.StatusCode = (int)HttpStatusCode.OK;
             }
             catch(Exception exp)
@@ -167,7 +143,7 @@ namespace MTGLambda
                     StatusCode = (int)HttpStatusCode.InternalServerError,
                     Headers = new Dictionary<string, string> {
                         { "Content-Type", "application/json" },
-                        //{ "Access-Control-Allow-Origin", "*" }
+                        { "Access-Control-Allow-Origin", "*" }
                     },
                     Body = JsonConvert.SerializeObject(body)
                 };
@@ -328,6 +304,26 @@ namespace MTGLambda
 
             LambdaLogger.Log($"Leaving: ImportCards({ JsonConvert.SerializeObject(response) })");
             return response;
+        }
+
+        /// <summary>
+        /// Cross origin support / set this up as preflight options method
+        /// for each method that returns to a browser
+        /// </summary>
+        /// <param name="apiGatewayProxyRequest"></param>
+        /// <param name="lambdaContext"></param>
+        /// <returns></returns>
+        public async Task<APIGatewayProxyResponse> Cors(APIGatewayProxyRequest apiGatewayProxyRequest, ILambdaContext lambdaContext)
+        {
+            return new APIGatewayProxyResponse
+            {
+                Headers = new Dictionary<string, string> { { "Content-Type", "application/json" },
+                                                           { "Access-Control-Allow-Origin", "*" },
+                                                           { "Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS" },
+                                                           { "Access-Control-Allow-Headers", "*"} },
+                StatusCode = (int)HttpStatusCode.OK,
+                Body = string.Empty
+            };
         }
     }
 }
