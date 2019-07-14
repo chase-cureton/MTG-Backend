@@ -125,11 +125,32 @@ namespace MTGLambda.MTGLambda.Services.MTG
                 {
                     LambdaLogger.Log($"Name Filter: { request.NameFilter }");
 
-                    if (request.ManaCostFilter != null && request.ColorFilter != null)
+                    if (request.ManaCostFilter != null && request.ColorFilter != null && request.BaseTypeFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromNameAndManaCostAndColorsAndBaseType(request)
+                                             .ToList();
+                    }
+                    else if (request.ManaCostFilter != null && request.BaseTypeFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromNameAndManaCostAndBaseType(request)
+                                             .ToList();
+                    }
+                    else if (request.ManaCostFilter != null && request.ColorFilter != null)
                     {
                         response = SvcContext.Repository
                                              .Cards
                                              .FindFromNameAndManaCostAndColors(request)
+                                             .ToList();
+                    }
+                    else if (request.BaseTypeFilter != null && request.ColorFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromNameAndBaseTypeAndColors(request)
                                              .ToList();
                     }
                     else if (request.ManaCostFilter != null)
@@ -146,6 +167,13 @@ namespace MTGLambda.MTGLambda.Services.MTG
                                              .FindFromNameAndColors(request)
                                              .ToList();
                     }
+                    else if (request.BaseTypeFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromNameAndBaseType(request)
+                                             .ToList();
+                    }
                     else
                     {
                         response = SvcContext.Repository
@@ -158,11 +186,32 @@ namespace MTGLambda.MTGLambda.Services.MTG
                 {
                     LambdaLogger.Log($"Text Filter: { request.TextFilter }");
 
-                    if (request.ManaCostFilter != null && request.ColorFilter != null)
+                    if (request.ManaCostFilter != null && request.ColorFilter != null && request.BaseTypeFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromTextAndManaCostAndColorsAndBaseType(request)
+                                             .ToList();
+                    }
+                    else if (request.ManaCostFilter != null && request.BaseTypeFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromTextAndManaCostAndBaseType(request)
+                                             .ToList();
+                    }
+                    else if (request.ManaCostFilter != null && request.ColorFilter != null)
                     {
                         response = SvcContext.Repository
                                              .Cards
                                              .FindFromTextAndManaCostAndColors(request)
+                                             .ToList();
+                    }
+                    else if (request.BaseTypeFilter != null && request.ColorFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromTextAndBaseTypeAndColors(request)
                                              .ToList();
                     }
                     else if (request.ManaCostFilter != null)
@@ -179,6 +228,13 @@ namespace MTGLambda.MTGLambda.Services.MTG
                                              .FindFromTextAndColors(request)
                                              .ToList();
                     }
+                    else if (request.BaseTypeFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromTextAndBaseType(request)
+                                             .ToList();
+                    }
                     else
                     {
                         response = SvcContext.Repository
@@ -193,7 +249,57 @@ namespace MTGLambda.MTGLambda.Services.MTG
                 }
                 else
                 {
-                    throw new Exception("No search filter terms given.");
+                    LambdaLogger.Log($"No search bar content: { JsonConvert.SerializeObject(request) }");
+
+                    if (request.ManaCostFilter != null && request.ColorFilter != null && request.BaseTypeFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromManaCostAndBaseTypeAndColors(request)
+                                             .ToList();
+                    }
+                    else if (request.ManaCostFilter != null && request.ColorFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromManaCostAndColors(request)
+                                             .ToList();
+                    }
+                    else if (request.ManaCostFilter != null && request.BaseTypeFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromManaCostAndBaseType(request)
+                                             .ToList();
+                    }
+                    else if (request.BaseTypeFilter != null && request.ColorFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromBaseTypeAndColors(request)
+                                             .ToList();
+                    }
+                    else if (request.ManaCostFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromManaCost(request)
+                                             .ToList();
+                    }
+                    else if (request.BaseTypeFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromBaseType(request)
+                                             .ToList();
+                    }
+                    else if (request.ColorFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromColors(request)
+                                             .ToList();
+                    }
                 }
             }
             catch (Exception exp)
