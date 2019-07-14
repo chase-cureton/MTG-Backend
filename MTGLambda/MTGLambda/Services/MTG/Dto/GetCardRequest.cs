@@ -14,6 +14,8 @@ namespace MTGLambda.MTGLambda.Services.MTG.Dto
 
         public Dictionary<int, bool> ManaCostFilter { get; set; }
 
+        public Dictionary<string, bool> BaseTypeFilter { get; set; }
+
         /// <summary>
         /// Nullable bool gives 3 options
         /// Null: Don't care about the color
@@ -25,6 +27,7 @@ namespace MTGLambda.MTGLambda.Services.MTG.Dto
         public GetCardRequest()
         {
             ManaCostFilter = new Dictionary<int, bool>();
+            BaseTypeFilter = new Dictionary<string, bool>();
             ColorFilter = new Dictionary<string, bool?>();
         }
     }

@@ -39,6 +39,7 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             return FindAll(string.Format("ManaCost = {0}", convertedManaCost));
         }
 
+        //Name Filters
         public IEnumerable<Card> FindFromName(string name)
         {
             var conditions = new List<ScanCondition>
@@ -75,6 +76,19 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             return FindAll(conditions);
         }
 
+        public IEnumerable<Card> FindFromNameAndBaseType(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromNameAndBaseType({ JsonConvert.SerializeObject(request) })");
+
+            var conditions = new List<ScanCondition>();
+
+            AddSearchConditions(request, conditions);
+
+            AddBaseTypeConditions(request, conditions);
+
+            return FindAll(conditions);
+        }
+
         public IEnumerable<Card> FindFromNameAndManaCostAndColors(GetCardRequest request)
         {
             LambdaLogger.Log($"Entering: FindFromNameAndManaCostAndColors({ JsonConvert.SerializeObject(request) }");
@@ -90,6 +104,24 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             return FindAll(conditions);
         }
 
+        public IEnumerable<Card> FindFromNameAndManaCostAndColorsAndBaseType(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromNameAndManaCostAndColorsAndBaseType({ JsonConvert.SerializeObject(request) }");
+
+            var conditions = new List<ScanCondition>();
+
+            AddSearchConditions(request, conditions);
+
+            AddManaCostConditions(request, conditions);
+
+            AddColorConditions(request, conditions);
+
+            AddBaseTypeConditions(request, conditions);
+
+            return FindAll(conditions);
+        }
+
+        //Text Filters
         public IEnumerable<Card> FindFromText(string text)
         {
             var conditions = new List<ScanCondition>
@@ -122,8 +154,23 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             return FindAll(conditions);
         }
 
+        public IEnumerable<Card> FindFromTextAndBaseType(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromTextAndBaseType({ JsonConvert.SerializeObject(request) })");
+
+            var conditions = new List<ScanCondition>();
+
+            AddSearchConditions(request, conditions);
+
+            AddBaseTypeConditions(request, conditions);
+
+            return FindAll(conditions);
+        }
+
         public IEnumerable<Card> FindFromTextAndManaCostAndColors(GetCardRequest request)
         {
+            LambdaLogger.Log($"Entering: FindFromTextAndManaCostAndColors({ JsonConvert.SerializeObject(request) })");
+
             var conditions = new List<ScanCondition>();
 
             AddSearchConditions(request, conditions);
@@ -133,6 +180,95 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             return FindAll(conditions);
         }
 
+        public IEnumerable<Card> FindFromTextAndManaCostAndColorsAndBaseType(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromTextAndManaCostAndColorsAndBaseType({ JsonConvert.SerializeObject(request) })");
+
+            var conditions = new List<ScanCondition>();
+
+            AddSearchConditions(request, conditions);
+            AddManaCostConditions(request, conditions);
+            AddColorConditions(request, conditions);
+            AddBaseTypeConditions(request, conditions);
+
+            return FindAll(conditions);
+        }
+
+        //No content (Mana Cost)
+        public IEnumerable<Card> FindFromManaCost(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromManaCost({ JsonConvert.SerializeObject(request) })");
+
+            var conditions = new List<ScanCondition>();
+
+            AddManaCostConditions(request, conditions);
+
+            return FindAll(conditions);
+        }
+
+        public IEnumerable<Card> FindFromManaCostAndColors(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromManaCostAndColors({ JsonConvert.SerializeObject(request) })");
+
+            var conditions = new List<ScanCondition>();
+
+            AddManaCostConditions(request, conditions);
+
+            AddColorConditions(request, conditions);
+
+            return FindAll(conditions);
+        }
+
+        public IEnumerable<Card> FindFromManaCostAndBaseType(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromManaCostAndBaseType({ JsonConvert.SerializeObject(request) })");
+
+            var conditions = new List<ScanCondition>();
+
+            AddManaCostConditions(request, conditions);
+
+            AddBaseTypeConditions(request, conditions);
+
+            return FindAll(conditions);
+        }
+
+        //No content (Base Type)
+        public IEnumerable<Card> FindFromBaseType(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromBaseType({ JsonConvert.SerializeObject(request) })");
+
+            var conditions = new List<ScanCondition>();
+
+            AddBaseTypeConditions(request, conditions);
+
+            return FindAll(conditions);
+        }
+
+        public IEnumerable<Card> FindFromBaseTypeAndColors(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromBaseTypeAndColors({ JsonConvert.SerializeObject(request) })");
+
+            var conditions = new List<ScanCondition>();
+
+            AddBaseTypeConditions(request, conditions);
+
+            AddColorConditions(request, conditions);
+
+            return FindAll(conditions);
+        }
+
+        //No content (Colors)
+        public IEnumerable<Card> FindFromColors(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromColors({ JsonConvert.SerializeObject(request) })");
+
+            var conditions = new List<ScanCondition>();
+
+            AddColorConditions(request, conditions);
+
+            return FindAll(conditions);
+        }
+        
         private void AddSearchConditions(GetCardRequest request, List<ScanCondition> conditions)
         {
             if (!string.IsNullOrWhiteSpace(request.TextFilter))
@@ -223,6 +359,30 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
                 var objects = queryList.Select(x => (object)x).ToArray();
 
                 var condition = new ScanCondition("ManaCost", ScanOperator.In, objects );
+                conditions.Add(condition);
+            }
+        }
+
+        private void AddBaseTypeConditions(GetCardRequest request, List<ScanCondition> conditions)
+        {
+            LambdaLogger.Log($"Entering: AddBaseTypeConditions({ JsonConvert.SerializeObject(request) })");
+
+            var queryList = new List<string>();
+            foreach(var baseType in request.BaseTypeFilter)
+            {
+                if (baseType.Value)
+                {
+                    queryList.Add(baseType.Key);
+                }
+            }
+
+            LambdaLogger.Log($"Query List: { JsonConvert.SerializeObject(queryList) }");
+
+            if (queryList.Any())
+            {
+                var objects = queryList.Select(x => (object)x).ToArray();
+
+                var condition = new ScanCondition("BaseType", ScanOperator.In, objects);
                 conditions.Add(condition);
             }
         }
