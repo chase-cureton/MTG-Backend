@@ -395,11 +395,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
                 }
             }
 
-            if (containsList.Any())
-                conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.Contains, containsList.ToArray()));
+            foreach(var colorCondition in containsList)
+            {
+                conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.Contains, colorCondition));
+            }
 
-            if (excludeList.Any())
-                conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.NotContains, excludeList.ToArray()));
+            foreach(var excludeColorCondition in excludeList)
+            {
+                conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.Contains, excludeColorCondition));
+            }
+
+            //if (containsList.Any())
+            //    conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.Contains, containsList.ToArray()));
+
+            //if (excludeList.Any())
+            //    conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.NotContains, excludeList.ToArray()));
         }
 
         private void AddManaCostConditions(GetCardRequest request, List<ScanCondition> conditions)
