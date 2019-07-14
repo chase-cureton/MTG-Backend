@@ -67,6 +67,27 @@
 				}
 			}
 		},
+		"ImportCardsFromAPI" : {
+			"Type" : "AWS::Serverless::Function",
+			"Properties": {
+				"Handler": "MTGLambda::MTGLambda.Functions::ImportCardsFromAPI",
+				"Runtime": "dotnetcore2.1",
+				"CodeUri": "",
+				"MemorySize": 256,
+				"Timeout": 300,
+				"Role": null,
+				"Policies": [ "AWSLambdaBasicExecutionRole" ],
+				"Events": {
+					"PutResource": {
+						"Type": "Api",
+						"Properties": {
+							"Path": "/mtg-services/importcards-api",
+							"Method": "POST"
+						}
+					}
+				}
+			}
+		},
 		"Cors": {
 			"Type": "AWS::Serverless::Function",
 			"Properties": {

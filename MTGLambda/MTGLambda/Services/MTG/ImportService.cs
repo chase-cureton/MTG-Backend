@@ -22,7 +22,7 @@ namespace MTGLambda.MTGLambda.Services.MTG
         /// </summary>
         /// <param name="page"></param>
         /// <param name="pageSize"></param>
-        private void ImportFromAPI(int page, int pageSize)
+        public void ImportFromAPI(int page, int pageSize)
         {
             CardService service = new CardService();
 
@@ -63,6 +63,28 @@ namespace MTGLambda.MTGLambda.Services.MTG
             }
 
             //LambdaLogger.Log($"Page Results: { JsonConvert.SerializeObject(pageResults.Value.GetRange(1, 10)) }");
+        }
+
+        public void ImportFromAPI(int pageStart, int pageEnd, int pageSize)
+        {
+            LambdaLogger.Log($"Entering: ImportCards({pageStart}, { pageEnd }, {pageSize})");
+
+            try
+            {
+                CardService service = new CardService();
+
+                for (int i = pageStart; i < pageEnd; i++)
+                {
+                    ImportFromAPI(i, pageSize);
+                }
+            }
+            catch (Exception exp)
+            {
+                LambdaLogger.Log($"Error: { exp }");
+                throw;
+            }
+
+            LambdaLogger.Log($"Leaving: ImportCards({pageStart}, { pageEnd }, {pageSize})");
         }
 
         /// <summary>

@@ -75,7 +75,7 @@ namespace MTGLambda.MTGLambda.Services.MTG
         }
 
         /// <summary>
-        /// Retrieve card by name from underlying DynamoDb table
+        /// Get cards by searching name
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
@@ -103,6 +103,111 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
             LambdaLogger.Log($"Leaving: GetCardFromName({ JsonConvert.SerializeObject(responseCards) })");
             return responseCards;
+        }
+
+        /// <summary>
+        /// Gets cards by request
+        /// - NameFilter: Searches against name
+        /// - TextFilter: Searches against the card text
+        /// - ColorFilter: Searches filters based on color
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public List<Card> GetCardsFromRequest(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromRequest({ JsonConvert.SerializeObject(request) })");
+
+            var response = new List<Card>();
+
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(request.NameFilter))
+                {
+                    LambdaLogger.Log($"Name Filter: { request.NameFilter }");
+
+                    if (request.ManaCostFilter != null && request.ColorFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromNameAndManaCostAndColors(request)
+                                             .ToList();
+                    }
+                    else if (request.ManaCostFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromNameAndManaCost(request)
+                                             .ToList();
+                    }
+                    else if (request.ColorFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromNameAndColors(request)
+                                             .ToList();
+                    }
+                    else
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromName(request.NameFilter)
+                                             .ToList();
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(request.TextFilter))
+                {
+                    LambdaLogger.Log($"Text Filter: { request.TextFilter }");
+
+                    if (request.ManaCostFilter != null && request.ColorFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromTextAndManaCostAndColors(request)
+                                             .ToList();
+                    }
+                    else if (request.ManaCostFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromTextAndManaCost(request)
+                                             .ToList();
+                    }
+                    else if (request.ColorFilter != null)
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromTextAndColors(request)
+                                             .ToList();
+                    }
+                    else
+                    {
+                        response = SvcContext.Repository
+                                             .Cards
+                                             .FindFromText(request.TextFilter)
+                                             .ToList();
+                    }
+                }
+                else if (!string.IsNullOrWhiteSpace(request.KeywordsFilter))
+                {
+                    throw new NotImplementedException("Keyword filter not supported yet");
+                }
+                else
+                {
+                    throw new Exception("No search filter terms given.");
+                }
+            }
+            catch (Exception exp)
+            {
+                LambdaLogger.Log($"Error: { exp }");
+                throw;
+            }
+
+            LambdaLogger.Log($"Leaving: FindFromRequest({ JsonConvert.SerializeObject(response) })");
+
+            return response.Where(c => !string.IsNullOrWhiteSpace(c.ImageUrl))
+                           .GroupBy(c => c.CardText)
+                           .Select(g => g.First())
+                           .ToList();
         }
 
         public void SaveCard(Card card)

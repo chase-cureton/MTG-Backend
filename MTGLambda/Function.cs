@@ -13,6 +13,7 @@ using MTGLambda.MTGLambda.DataClass.MTGLambdaDeck;
 using MTGLambda.MTGLambda.Services.MTG;
 using MTGLambda.MTGLambda.Services;
 using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
+using MTGLambda.MTGLambda.Services.MTG.Dto;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -115,13 +116,17 @@ namespace MTGLambda
 
             try
             {
-                var requestParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.Body);
+                if (request.Body == "CloudWatch")
+                    return response;
+
+                //var requestParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.Body);
+                var requestDto = JsonConvert.DeserializeObject<GetCardRequest>(request.Body);
 
                 var MTGService = ServiceFactory.GetService<MTGService>();
 
-                LambdaLogger.Log($"About to search for card...{requestParams["Name"]}");
+                LambdaLogger.Log($"About to search...{ JsonConvert.SerializeObject(requestDto) }");
 
-                var cards = MTGService.GetCardsFromName(requestParams["Name"]);
+                var cards = MTGService.GetCardsFromRequest(requestDto);
 
                 LambdaLogger.Log($"Cards retrieved => cards: { JsonConvert.SerializeObject(cards) }");
 
@@ -303,6 +308,70 @@ namespace MTGLambda
             }
 
             LambdaLogger.Log($"Leaving: ImportCards({ JsonConvert.SerializeObject(response) })");
+            return response;
+        }
+        /// <summary>
+        /// Imports cards from API into S3 files
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public async Task<APIGatewayProxyResponse> ImportCardsFromAPI(APIGatewayProxyRequest request, ILambdaContext context)
+        {
+            LambdaLogger.Log($"Entering: ImportCardsFromAPI({ JsonConvert.SerializeObject(request) })");
+
+            var response = new APIGatewayProxyResponse()
+            {
+                StatusCode = (int)HttpStatusCode.OK,
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json" },
+                    //{ "Access-Control-Allow-Origin", "*" }
+                }
+            };
+
+            try
+            {
+                var input = JsonConvert.DeserializeObject<Dictionary<string, int>>(request.Body);
+
+                var importService = ServiceFactory.GetService<ImportService>();
+
+                if (input.ContainsKey("Page"))
+                {
+                    response.Body = $"Importing page: { input["Page"] } and page size: { input["PageSize"]}";
+                    importService.ImportFromAPI(input["Page"], input["PageSize"]);
+                }
+                else if (input.ContainsKey("PageStart"))
+                {
+                    response.Body = $"Importing page start/end: { input["PageStart"] } / { input["PageEnd"] } and page size: { input["PageSize"]}";
+                    importService.ImportFromAPI(input["PageStart"], input["PageEnd"], input["PageSize"]);
+                }
+            }
+            catch (Exception exp)
+            {
+                LambdaLogger.Log($"Error: { exp }");
+
+                Dictionary<string, string> body = new Dictionary<string, string>()
+                {
+                    { "Message", "y u breaking my stuff?" },
+                    { "Error", $"This is all you get, here's your peasant error: { exp.Message }" }
+                };
+
+                var errorResponse = new APIGatewayProxyResponse
+                {
+                    StatusCode = (int)HttpStatusCode.InternalServerError,
+                    Headers = new Dictionary<string, string> {
+                        { "Content-Type", "application/json" },
+                    },
+                    Body = JsonConvert.SerializeObject(body)
+                };
+
+                LambdaLogger.Log($"Leaving: ImportCardsFromAPI({ JsonConvert.SerializeObject(errorResponse) })");
+                return errorResponse;
+
+            }
+
+            LambdaLogger.Log($"Leaving: ImportCardsFromAPI({ JsonConvert.SerializeObject(response) })");
             return response;
         }
 

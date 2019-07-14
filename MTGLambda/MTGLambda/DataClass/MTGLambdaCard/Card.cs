@@ -43,6 +43,8 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaCard
         public string Number { get; set; }
         [DynamoDBProperty]
         public float? FloatId { get; set; }
+        [DynamoDBProperty]
+        public virtual string ColorIdentity { get; set; }
         
         public Card()
         {

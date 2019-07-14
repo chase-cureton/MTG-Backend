@@ -399,6 +399,7 @@ namespace MTGLambda.MTGLambda.Services.MagicIO.Dto
                     responseCard.Set = import.Set;
                     responseCard.SetName = import.SetName;
                     responseCard.Id = import.Id;
+                    responseCard.ColorIdentity = JsonConvert.SerializeObject(import.ColorIdentity);
                 }
 
                 //Algorithm for determining base set of keywords to operate off of?
