@@ -185,7 +185,7 @@ namespace MTGLambda
 
                 responseContent.Add(new DeckOverviewDto()
                 {
-                    id = 1,
+                    id = "1",
                     artifacts = 10,
                     creatures = 24,
                     deckName = "The Harbinger (Deck #1)",
@@ -198,7 +198,7 @@ namespace MTGLambda
 
                 responseContent.Add(new DeckOverviewDto()
                 {
-                    id = 2,
+                    id = "2",
                     artifacts = 6,
                     creatures = 30,
                     deckName = "The Weeper (Deck #2)",

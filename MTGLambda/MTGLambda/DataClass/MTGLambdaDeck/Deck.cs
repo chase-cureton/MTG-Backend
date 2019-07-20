@@ -8,11 +8,11 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaDeck
     public class Deck
     {
         //Object-identifiable
-        public long id { get; set; }
+        public string id { get; set; }
         public string Name { get; set; }
 
         //User-identifiable
-        public long UserId { get; set; }
+        public string UserId { get; set; }
 
         //Content
         public List<Card> DeckList { get; set; }
@@ -26,7 +26,7 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaDeck
 
     public class DeckOverviewDto
     {
-        public long id { get; set; }
+        public string id { get; set; }
         public string deckName { get; set; }
         public long instants { get; set; }
         public long sorceries { get; set; }

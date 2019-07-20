@@ -31,7 +31,7 @@
 				"Handler": "MTGLambda::MTGLambda.Functions::SearchCards",
 				"Runtime": "dotnetcore2.1",
 				"CodeUri": "",
-				"MemorySize": 256,
+				"MemorySize": 1024,
 				"Timeout": 30,
 				"Role": null,
 				"Policies": [ "AWSLambdaBasicExecutionRole" ],

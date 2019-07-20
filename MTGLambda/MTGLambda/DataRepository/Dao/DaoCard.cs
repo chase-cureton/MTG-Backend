@@ -350,10 +350,12 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             {
                 //Capitalize first letter & lowercase all other letters for each search term
                 var searchTerms = request.NameFilter
-                                         .Split(' ')
-                                         .Select(x => char.ToUpper(x[0]) + x.Substring(1).ToLower())
+                                         .Split(new char[] { ' ' })
+                                         .Select(x => !x.Contains('-') ? (char.ToUpper(x[0]) + x.Substring(1).ToLower()) : x)
                                          .Select(x => FormatPreposition(x))
                                          .ToList();
+
+                searchTerms[0] = char.ToUpper(searchTerms[0][0]) + searchTerms[0].Substring(1).ToLower();
 
                 conditions.Add(new ScanCondition("Name", ScanOperator.Contains, String.Join(' ', searchTerms.ToArray())));
                 //addedTerms.Add(char.ToUpper(searchTerm[0]) + searchTerm.Substring(1));
@@ -365,7 +367,8 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
         private string FormatPreposition(string prep)
         {
-            List<string> noCaps = new List<string>() { "Of", "And", "Or", "In", "At" };
+            List<string> noCaps = new List<string>() { "Of", "And", "Or", "In", "At", "The" };
+
             if (noCaps.Contains(prep)) 
             {
                 return char.ToLower(prep[0]) + prep.Substring(1);
