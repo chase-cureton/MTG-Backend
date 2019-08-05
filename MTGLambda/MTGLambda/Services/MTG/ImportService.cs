@@ -209,6 +209,8 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
             try
             { 
+                //1.) Associate primary keywords
+                //    - Keywords related directly to Card Text
                 foreach(var primaryKeyPair in Dictionary.Primary)
                 {
                     var keyword = primaryKeyPair.Key;
@@ -227,6 +229,11 @@ namespace MTGLambda.MTGLambda.Services.MTG
                                 (negate != null && negate.Count > 0);
 
                     var case4 = (prefix != null && prefix.Count > 0);
+
+                    //TODO: Need to break card text up into sections based on \n
+                    //      - Accounts for things like separate abilities on planeswalkers
+                    //      - Ex. Sphinx's Tutelage - 1st part is not card draw, but a Trigger: Card Draw & 2nd part is card draw
+                    //      - Translate should add keywords: "On:Card Draw" (Secondary), "On:Card Draw => Action:Mill" (Primary), "Card Draw" (Secondary), "Card Draw: Sustained" (Primary)
 
                     if (case1) //Contains prefix, suffix and negate
                     {
@@ -249,6 +256,43 @@ namespace MTGLambda.MTGLambda.Services.MTG
                     else //Constraint doesn't contain information correctly, log
                     {
                         LambdaLogger.Log($"Keyword Dictionary incorrect for keyword => { primaryKeyPair.Key }");
+                    }
+                }
+
+                //2.) Associate secondary keywords
+                //    - Keywords related to other keywords
+                foreach(var secondaryKeyPair in Dictionary.Secondary.OrderByDescending(x => x.Value.Primary.Count))
+                {
+                    var keyword = secondaryKeyPair.Key;
+
+                    var primaryKeywords = secondaryKeyPair.Value.Primary;
+                    var secondaryKeywords = secondaryKeyPair.Value.Secondary;
+
+                    if (primaryKeywords != null && primaryKeywords.Count > 0)
+                    {
+                        foreach(var primaryKeyword in primaryKeywords)
+                        {
+                            if (response.Contains(primaryKeyword))
+                            {
+                                if (!response.Contains(keyword))
+                                    response.Add(keyword);
+
+                                break;
+                            }
+                        }
+                    }
+                    else if (secondaryKeywords != null && secondaryKeywords.Count > 0)
+                    {
+                        foreach(var secondaryKeyword in secondaryKeywords)
+                        {
+                            if (response.Contains(secondaryKeyword))
+                            {
+                                if (!response.Contains(keyword))
+                                    response.Add(keyword);
+
+                                break;
+                            }
+                        }
                     }
                 }
             }

@@ -34,13 +34,13 @@ namespace MTGLambda.MTGLambda.Services.MTG.Dto
         /// If keywords are contained, add higher order keywords
         /// ex. Removal: Creature (contains all removals for creature - destroy, exile, bounce, etc.. for creature) 
         /// </summary>
-        public Dictionary<string, List<string>> Primary { get; set; }
+        public List<string> Primary { get; set; }
 
         /// <summary>
         /// If primary higher order keywords are contained, add higher order keywords
         /// ex. Removal: Creature (contains all removals for creature - destroy, exile, bounce, etc.. for creature) 
         ///     Removal (contains all removals - Removal: Creature, Removal: Artifact, etc..)
         /// </summary>
-        public Dictionary<string, List<string>> Secondary { get; set; }
+        public List<string> Secondary { get; set; }
     }
 }
