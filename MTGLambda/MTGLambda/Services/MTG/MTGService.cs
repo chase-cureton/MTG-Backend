@@ -2,6 +2,8 @@
 using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
 using MTGLambda.MTGLambda.Services.Common;
 using MTGLambda.MTGLambda.Services.MTG.Dto;
+using MTGLambda.MTGLambda.Services.TCG;
+using MTGLambda.MTGLambda.Services.TCG.Dto;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -310,10 +312,34 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
             LambdaLogger.Log($"Leaving: FindFromRequest({ JsonConvert.SerializeObject(response) })");
 
-            return response.Where(c => !string.IsNullOrWhiteSpace(c.ImageUrl))
-                           .GroupBy(c => c.CardText)
-                           .Select(g => g.First())
-                           .ToList();
+            var cardList = response.Where(c => !string.IsNullOrWhiteSpace(c.ImageUrl))
+                                   .GroupBy(c => c.CardText)
+                                   .Select(g => g.First())
+                                   .ToList();
+
+            //if (request.IncludePrice)
+            //{
+            //    var tcgService = ServiceFactory.GetService<TCGService>();
+
+            //    List<TCGSearchFilter> filters = new List<TCGSearchFilter>();
+            //    filters.Add(new TCGSearchFilter() { name = "ProductName", values = cardList.Select(x => x.Name).ToList() });
+
+            //    TCGSearchRequest tcgRequest = new TCGSearchRequest
+            //    {
+            //        filters = filters
+            //    };
+
+            //    var tcgResponse = tcgService.Search(tcgRequest).Result;
+
+            //    if (tcgResponse.success)
+            //    {
+            //        LambdaLogger.Log($"TCG Response Results: { JsonConvert.SerializeObject(tcgResponse) }");
+            //    }
+            //    else
+            //        LambdaLogger.Log($"Request Failure for TCG Search: { JsonConvert.SerializeObject(tcgRequest) }");
+            //}
+
+            return cardList;
         }
 
         public void SaveCard(Card card)

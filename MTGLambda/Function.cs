@@ -126,7 +126,11 @@ namespace MTGLambda
 
                 LambdaLogger.Log($"About to search...{ JsonConvert.SerializeObject(requestDto) }");
 
-                var cards = MTGService.GetCardsFromRequest(requestDto);
+                requestDto.IncludePrice = true;
+
+                var cards = MTGService.GetCardsFromRequest(requestDto)
+                                      .OrderBy(x => x.ManaCost);
+
 
                 LambdaLogger.Log($"Cards retrieved => cards: { JsonConvert.SerializeObject(cards) }");
 

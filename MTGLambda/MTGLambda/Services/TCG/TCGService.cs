@@ -1,11 +1,14 @@
 ﻿using Amazon.Lambda.Core;
+using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
 using MTGLambda.MTGLambda.Helpers.S3;
 using MTGLambda.MTGLambda.Helpers.S3.Dto;
+using MTGLambda.MTGLambda.Services.Common;
 using MTGLambda.MTGLambda.Services.MTG.Constants;
 using MTGLambda.MTGLambda.Services.TCG.Constants;
 using MTGLambda.MTGLambda.Services.TCG.Dto;
 using Newtonsoft.Json;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -14,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace MTGLambda.MTGLambda.Services.TCG
 {
-    public class TCGService
+    public class TCGService : BaseService
     {
         private static HttpClient httpClient = new HttpClient();
 
@@ -256,7 +259,7 @@ namespace MTGLambda.MTGLambda.Services.TCG
                             LambdaLogger.Log($"SearchCategoryProducts Response: {JsonConvert.SerializeObject(response)}");
 
                             if (!response.success)
-                                throw new Exception($"TCG Error(s): { string.Join(" - ", response.errors) }");
+                                LambdaLogger.Log($"TCG Error(s): { string.Join(" - ", response.errors) }");
                         }
                     }
                 }
@@ -271,8 +274,122 @@ namespace MTGLambda.MTGLambda.Services.TCG
 
             return response;
         }
+
+        public async void AddTCGPrice(List<Card> importCards)
+        {
+            try
+            {
+                string url = string.Format(TCGConstants.GET_PRODUCT_PRICE_TEMPLATE, string.Join(',', importCards.Select(x => x.TCGProductId)));
+
+                using (HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Get, url))
+                {
+                    httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
+
+                    LambdaLogger.Log($"Http Request: {JsonConvert.SerializeObject(httpRequest)}");
+
+                    HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
+
+                    LambdaLogger.Log($"Http Response: {JsonConvert.SerializeObject(httpResponse)}");
+
+                    if (httpResponse != null)
+                    {
+                        if (httpResponse.IsSuccessStatusCode)
+                        {
+                            string httpResponseContent = await httpResponse.Content.ReadAsStringAsync();
+
+                            LambdaLogger.Log($"Http Response Content: {httpResponseContent}");
+
+                            var response = JsonConvert.DeserializeObject<TCGProductPriceResponse>(httpResponseContent);
+
+                            LambdaLogger.Log($"SearchCategoryProducts Response: {JsonConvert.SerializeObject(response)}");
+
+                            if (response.success)
+                            {
+                                foreach(var importCard in importCards)
+                                {
+                                    var matchResult = response.results
+                                                              .Where(x => x.productId == importCard.TCGProductId)
+                                                              .Where(x => x.subTypeName == TCGConstants.SUB_TYPE_NORMAL)
+                                                              .FirstOrDefault();
+
+                                    var foilMatchResult = response.results
+                                                                  .Where(x => x.productId == importCard.TCGProductId)
+                                                                  .Where(x => x.subTypeName == TCGConstants.SUB_TYPE_FOIL)
+                                                                  .FirstOrDefault();
+
+                                    if (matchResult != null)
+                                    {
+                                        importCard.TCGMarketPrice = matchResult.marketPrice;
+                                    }
+
+                                    if (foilMatchResult != null)
+                                    {
+                                        importCard.TCGMarketPrice_Foil = foilMatchResult.marketPrice;
+                                    }
+                                }
+                            }
+                            else
+                                LambdaLogger.Log($"TCG Error(s): { string.Join(" - ", response.errors) }");
+                        }
+                    }
+                }
+            }
+            catch(Exception exp)
+            {
+                LambdaLogger.Log($"Error({ JsonConvert.SerializeObject(importCards) }): { exp }");
+            }
+        }
+
         #endregion
 
-        //TODO: Import service for all cards
+        /// <summary>
+        /// Includes market price and productId on the card
+        /// </summary>
+        /// <param name="importList"></param>
+        public async void AddTCGDetails(Card importCard)
+        {
+            LambdaLogger.Log($"Entering: AddTCGDetails({ JsonConvert.SerializeObject(importCard) })");
+
+            try
+            {
+                var name = importCard.Name;
+
+                var filter = new TCGSearchFilter
+                {
+                    name = "ProductName",
+                    values = new List<string>() { name }
+                };
+
+                var request = new TCGSearchRequest
+                {
+                    filters = new List<TCGSearchFilter>() { filter }
+                };
+
+                var searchResponse = await Search(request);
+
+                LambdaLogger.Log($"TCG Search Response: { JsonConvert.SerializeObject(searchResponse) }");
+
+                if (searchResponse.success)
+                {
+                    var responseCard = searchResponse.results
+                                                     .Where(x => x.name == name)
+                                                     .FirstOrDefault();
+
+                    if (responseCard != null)
+                    {
+                        importCard.TCGGroupId = responseCard.groupId;
+                        importCard.TCGProductId = responseCard.productId;
+                    }
+                }
+                else
+                    LambdaLogger.Log($"TCG Search Response failure: { JsonConvert.SerializeObject(searchResponse) }");
+            }
+            catch(Exception exp)
+            {
+                LambdaLogger.Log($"Error: {exp}");
+            }
+
+            LambdaLogger.Log($"Leaving: AddTCGDetails({ JsonConvert.SerializeObject(importCard) })");
+        }
     }
 }

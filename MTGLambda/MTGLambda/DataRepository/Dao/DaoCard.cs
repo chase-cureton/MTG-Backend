@@ -355,7 +355,7 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
                                          .Select(x => FormatPreposition(x))
                                          .ToList();
 
-                searchTerms[0] = char.ToUpper(searchTerms[0][0]) + searchTerms[0].Substring(1).ToLower();
+                searchTerms[0] = !searchTerms[0].Contains('-') ? char.ToUpper(searchTerms[0][0]) + searchTerms[0].Substring(1).ToLower() : searchTerms[0];
 
                 conditions.Add(new ScanCondition("Name", ScanOperator.Contains, String.Join(' ', searchTerms.ToArray())));
                 //addedTerms.Add(char.ToUpper(searchTerm[0]) + searchTerm.Substring(1));

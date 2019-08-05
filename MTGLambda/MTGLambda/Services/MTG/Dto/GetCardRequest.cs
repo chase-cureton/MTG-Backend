@@ -16,6 +16,8 @@ namespace MTGLambda.MTGLambda.Services.MTG.Dto
 
         public Dictionary<string, bool> BaseTypeFilter { get; set; }
 
+        public bool IncludePrice { get; set; }
+
         /// <summary>
         /// Nullable bool gives 3 options
         /// Null: Don't care about the color

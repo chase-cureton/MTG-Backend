@@ -45,6 +45,15 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaCard
         public float? FloatId { get; set; }
         [DynamoDBProperty]
         public virtual string ColorIdentity { get; set; }
+
+        [DynamoDBProperty] //Cost from TCGPlayer.com
+        public float TCGMarketPrice { get; set; }
+        [DynamoDBProperty]
+        public float TCGMarketPrice_Foil { get; set; }
+        [DynamoDBProperty]
+        public long TCGProductId { get; set; }
+        [DynamoDBProperty]
+        public long TCGGroupId { get; set; }
         
         public Card()
         {

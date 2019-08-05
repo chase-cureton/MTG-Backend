@@ -1,5 +1,7 @@
 ﻿using Amazon.Lambda.Core;
 using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
+using MTGLambda.MTGLambda.Helpers.S3;
+using MTGLambda.MTGLambda.Helpers.S3.Dto;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
