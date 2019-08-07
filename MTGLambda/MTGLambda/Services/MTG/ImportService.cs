@@ -5,7 +5,9 @@ using MTGLambda.MTGLambda.Helpers.S3;
 using MTGLambda.MTGLambda.Helpers.S3.Dto;
 using MTGLambda.MTGLambda.Services.Common;
 using MTGLambda.MTGLambda.Services.MagicIO.Dto;
+using MTGLambda.MTGLambda.Services.MTG.Constants;
 using MTGLambda.MTGLambda.Services.MTG.Dto;
+using MTGLambda.MTGLambda.Services.ScryFall;
 using MTGLambda.MTGLambda.Services.TCG;
 using Newtonsoft.Json;
 using System;
@@ -17,7 +19,7 @@ namespace MTGLambda.MTGLambda.Services.MTG
 {
     public class ImportService : BaseService
     {
-        public KeywordDictionary Dictionary { get; set; }
+        public static KeywordDictionary Dictionary { get; set; }
 
         public ImportService()
         {
@@ -25,7 +27,7 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
             var s3Response = S3Helper.GetFile(new S3GetFileRequest()
             {
-
+                FilePath = MTGServiceConstants.KeywordDictionaryFilepath
             }).Result;
 
             if (s3Response.IsSuccess)
@@ -143,9 +145,9 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
                         newCard.FloatId = float.Parse(floatIdString);
 
-                        tcgService.AddTCGDetails(newCard);
+                        //tcgService.AddTCGDetails(newCard);
 
-                        newCard.Keywords = TranslateCardText(newCard.CardText);
+                        newCard.Tags = String.Join(" // ", TranslateCardText(newCard.CardText));
 
                         cardList.Add(newCard);
                     }
@@ -153,7 +155,9 @@ namespace MTGLambda.MTGLambda.Services.MTG
                     i++;
                 }
 
-                tcgService.AddTCGPrice(cardList);
+                LambdaLogger.Log($"About to add TCG Price: { JsonConvert.SerializeObject(cardList.Where(x => x.TCGProductId != 0)) }");
+
+                //tcgService.AddTCGPrice(cardList);
 
                 SvcContext.Repository
                           .Cards
@@ -198,6 +202,105 @@ namespace MTGLambda.MTGLambda.Services.MTG
             LambdaLogger.Log($"Leaving: ImportCards({pageStart}, { pageEnd }, {pageSize})");
         }
 
+        public void ScryImportCards(bool importAll, int cardStart = 0, int cardEnd = 20273)
+        {
+            LambdaLogger.Log($"Entering: ScryImportCards({importAll}, {cardStart} -> {cardEnd})");
+
+            try
+            {
+                var scryCards = JsonConvert.DeserializeObject<List<ScryCardDto>>(S3Helper.GetFile(new S3GetFileRequest
+                {
+                    FilePath = $"Imports/ScryImports/scryfall-oracle-cards.json"
+                }).Result.FileContent);
+
+                var cardList = new List<Card>();
+
+                if (importAll)
+                {
+                    int i = 0;
+                    scryCards = scryCards.Where(x => x.legalities != null && x.legalities["commander"] == "legal").ToList();
+
+                    foreach (var scryCard in scryCards)
+                    {
+                        if (scryCard != null)
+                        {
+                            var newCard = scryCard.Map(scryCard);
+
+                            if (!string.IsNullOrWhiteSpace(newCard.CardText))
+                                newCard.Tags = String.Join(" // ", TranslateCardText(newCard.CardText));
+
+                            if (!string.IsNullOrWhiteSpace(newCard.BackCardText))
+                            {
+                                var keywords = newCard.Tags
+                                                      .ToList();
+
+                                keywords.AddRange(String.Join(" // ", TranslateCardText(newCard.BackCardText)));
+
+                                newCard.Tags = String.Join(" // ", keywords);
+                            }
+
+                            LambdaLogger.Log($"Adding new card: { JsonConvert.SerializeObject(newCard) }");
+
+                            cardList.Add(newCard);
+
+                            if (cardList.Count == 25 || scryCard == scryCards.Last())
+                            {
+                                SvcContext.Repository
+                                          .Cards
+                                          .Save(cardList);
+
+                                cardList.Clear();
+                            }
+                        }
+
+                        i++;
+                    }
+                }
+                else
+                {
+                    scryCards = scryCards.Where(x => x.legalities != null && x.legalities["commander"] == "legal").ToList();
+
+                    for (int i = cardStart; i <= cardEnd; i++)
+                    {
+                        var scryCard = scryCards[i];
+                        var newCard = scryCard.Map(scryCard);
+
+                        if (!string.IsNullOrWhiteSpace(newCard.CardText))
+                            newCard.Tags = String.Join(" // ", TranslateCardText(newCard.CardText));
+
+                        if (!string.IsNullOrWhiteSpace(newCard.BackCardText))
+                        {
+                            var keywords = newCard.Tags
+                                                  .ToList();
+
+                            keywords.AddRange(String.Join(" // ", TranslateCardText(newCard.BackCardText)));
+
+                            newCard.Tags = String.Join(" // ", keywords);
+                        }
+
+                        LambdaLogger.Log($"Adding new card: { JsonConvert.SerializeObject(newCard) }");
+
+                        cardList.Add(newCard);
+
+                        if (cardList.Count == 25 || i == cardEnd)
+                        {
+                            SvcContext.Repository
+                                      .Cards
+                                      .Save(cardList);
+
+                            cardList.Clear();
+                        }
+                    }
+                }
+            }
+            catch(Exception exp)
+            {
+                LambdaLogger.Log($"Error: { exp }");
+            }
+
+            LambdaLogger.Log($"Leaving: ScryImportCards({importAll}, {cardStart} -> {cardEnd})");
+        }
+
         /// <summary>
         /// Translates card text into keywords using KeywordDictionary
         /// </summary>
@@ -205,7 +308,12 @@ namespace MTGLambda.MTGLambda.Services.MTG
         /// <returns></returns>
         private List<string> TranslateCardText(string cardText)
         {
+            LambdaLogger.Log($"Entering: TranslateCardText({ cardText })");
+
             List<string> response = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(cardText))
+                return response;
 
             try
             { 
@@ -215,85 +323,88 @@ namespace MTGLambda.MTGLambda.Services.MTG
                 {
                     var keyword = primaryKeyPair.Key;
                     var prefix = primaryKeyPair.Value.Prefix;
+                    var target = primaryKeyPair.Value.Target;
                     var suffix = primaryKeyPair.Value.Suffix;
                     var negate = primaryKeyPair.Value.Negate;
 
                     var case1 = (prefix != null && prefix.Count > 0) &&
                                 (suffix != null && suffix.Count > 0) &&
+                                (target != null && target.Count > 0) &&
                                 (negate != null && negate.Count > 0);
 
                     var case2 = (prefix != null && prefix.Count > 0) &&
+                                (target != null && target.Count > 0) &&
                                 (suffix != null && suffix.Count > 0);
 
                     var case3 = (prefix != null && prefix.Count > 0) &&
+                                (target != null && target.Count > 0) &&
                                 (negate != null && negate.Count > 0);
 
-                    var case4 = (prefix != null && prefix.Count > 0);
+                    var case4 = (prefix != null && prefix.Count > 0) &&
+                                (target != null && target.Count > 0);
+
+                    var case5 = (prefix != null && prefix.Count > 0) &&
+                                (negate != null && negate.Count > 0);
+
+                    var case6 = (prefix != null && prefix.Count > 0);
 
                     //TODO: Need to break card text up into sections based on \n
                     //      - Accounts for things like separate abilities on planeswalkers
                     //      - Ex. Sphinx's Tutelage - 1st part is not card draw, but a Trigger: Card Draw & 2nd part is card draw
                     //      - Translate should add keywords: "On:Card Draw" (Secondary), "On:Card Draw => Action:Mill" (Primary), "Card Draw" (Secondary), "Card Draw: Sustained" (Primary)
 
-                    if (case1) //Contains prefix, suffix and negate
+                    var cardTextSections = cardText.Split(new char[] { '\n' }).ToList();
+
+                    //LambdaLogger.Log($"Card Sections: { JsonConvert.SerializeObject(cardTextSections) }");
+
+                    foreach(var cardTextSection in cardTextSections)
                     {
-                        UpdateSuffixKeywords(cardText, response, keyword, prefix, suffix);
-                        UpdateNegateKeywords(cardText, response, keyword, negate);
-                    }
-                    else if (case2) //Contains prefix and suffix
-                    {
-                        UpdateSuffixKeywords(cardText, response, keyword, prefix, suffix);
-                    }
-                    else if (case3) //Contains prefix and negate
-                    {
-                        UpdatePrefixKeywords(cardText, response, keyword, prefix);
-                        UpdateNegateKeywords(cardText, response, keyword, negate);
-                    }
-                    else if(case4) //Contains prefix
-                    {
-                        UpdatePrefixKeywords(cardText, response, keyword, prefix);
-                    }
-                    else //Constraint doesn't contain information correctly, log
-                    {
-                        LambdaLogger.Log($"Keyword Dictionary incorrect for keyword => { primaryKeyPair.Key }");
+                        if (case1) //Contains prefix, target, suffix and negate
+                        {
+                            UpdateSuffixKeywords(cardTextSection, response, keyword, prefix, target, suffix);
+                            UpdateNegateKeywords(cardTextSection, response, keyword, negate);
+                        }
+                        else if (case2) //Contains prefix, target and suffix
+                        {
+                            UpdateSuffixKeywords(cardTextSection, response, keyword, prefix, target, suffix);
+                        }
+                        else if (case3) //Contains prefix, target and negate
+                        {
+                            UpdateTargetKeywords(cardTextSection, response, keyword, prefix, target);
+                            UpdateNegateKeywords(cardTextSection, response, keyword, negate);
+                        }
+                        else if (case4) //Contains prefix and target
+                        {
+                            UpdateTargetKeywords(cardTextSection, response, keyword, prefix, target);
+                        }
+                        else if (case5) //Contains prefix and negate
+                        {
+                            UpdatePrefixKeywords(cardTextSection, response, keyword, prefix);
+                            UpdateNegateKeywords(cardTextSection, response, keyword, negate);
+                        }
+                        else if (case6) //Contains prefix
+                        {
+                            UpdatePrefixKeywords(cardTextSection, response, keyword, prefix);
+                        }
+                        else //Constraint doesn't contain information correctly, log
+                        {
+                            //LambdaLogger.Log($"Keyword Dictionary incorrect for keyword => { primaryKeyPair.Key }");
+                        }
                     }
                 }
 
+                //LambdaLogger.Log($"Dictionary: { JsonConvert.SerializeObject(Dictionary) }");
+
                 //2.) Associate secondary keywords
                 //    - Keywords related to other keywords
-                foreach(var secondaryKeyPair in Dictionary.Secondary.OrderByDescending(x => x.Value.Primary.Count))
+                foreach(var secondaryKeyPair in Dictionary.Secondary.Where(x => x.Value.Primary != null))
                 {
-                    var keyword = secondaryKeyPair.Key;
+                    TranslateSecondaryKeyword(response, secondaryKeyPair);
+                }
 
-                    var primaryKeywords = secondaryKeyPair.Value.Primary;
-                    var secondaryKeywords = secondaryKeyPair.Value.Secondary;
-
-                    if (primaryKeywords != null && primaryKeywords.Count > 0)
-                    {
-                        foreach(var primaryKeyword in primaryKeywords)
-                        {
-                            if (response.Contains(primaryKeyword))
-                            {
-                                if (!response.Contains(keyword))
-                                    response.Add(keyword);
-
-                                break;
-                            }
-                        }
-                    }
-                    else if (secondaryKeywords != null && secondaryKeywords.Count > 0)
-                    {
-                        foreach(var secondaryKeyword in secondaryKeywords)
-                        {
-                            if (response.Contains(secondaryKeyword))
-                            {
-                                if (!response.Contains(keyword))
-                                    response.Add(keyword);
-
-                                break;
-                            }
-                        }
-                    }
+                foreach(var secondaryKeyPair in Dictionary.Secondary.Where(x => x.Value.Secondary != null))
+                {
+                    TranslateSecondaryKeyword(response, secondaryKeyPair);
                 }
             }
             catch (Exception exp)
@@ -301,7 +412,44 @@ namespace MTGLambda.MTGLambda.Services.MTG
                 LambdaLogger.Log($"TranslateCardText() Error: { exp }");
             }
 
+            LambdaLogger.Log($"Leaving TranslateCardText({ JsonConvert.SerializeObject(response) })");
+
             return response;
+        }
+
+        private static void TranslateSecondaryKeyword(List<string> response, KeyValuePair<string, SecondaryKeywordConstraint> secondaryKeyPair)
+        {
+            var keyword = secondaryKeyPair.Key;
+
+            var primaryKeywords = secondaryKeyPair.Value.Primary;
+            var secondaryKeywords = secondaryKeyPair.Value.Secondary;
+
+            if (primaryKeywords != null && primaryKeywords.Count > 0)
+            {
+                foreach (var primaryKeyword in primaryKeywords)
+                {
+                    if (response.Contains(primaryKeyword))
+                    {
+                        if (!response.Contains(keyword))
+                            response.Add(keyword);
+
+                        break;
+                    }
+                }
+            }
+            else if (secondaryKeywords != null && secondaryKeywords.Count > 0)
+            {
+                foreach (var secondaryKeyword in secondaryKeywords)
+                {
+                    if (response.Contains(secondaryKeyword))
+                    {
+                        if (!response.Contains(keyword))
+                            response.Add(keyword);
+
+                        break;
+                    }
+                }
+            }
         }
 
         private static void UpdatePrefixKeywords(string cardText, List<string> response, string keyword, List<string> prefix)
@@ -318,9 +466,43 @@ namespace MTGLambda.MTGLambda.Services.MTG
             }
         }
 
-        private static void UpdateSuffixKeywords(string cardText, List<string> response, string keyword, List<string> prefix, List<string> suffix)
+        private static void UpdateTargetKeywords(string cardText, List<string> response, string keyword, List<string> prefix, List<string> target)
         {
             bool containsPrefix = false;
+            string shortCardText = string.Empty;
+
+            foreach (var prefixCondition in prefix)
+            {
+                if (cardText.Contains(prefixCondition))
+                {
+                    //Chop off everything up to and including prefix from cardText
+                    int index = cardText.IndexOf(prefixCondition);
+                    shortCardText = cardText.Remove(0, index + prefixCondition.Length);
+
+                    containsPrefix = true;
+                    break;
+                }
+            }
+
+            if (containsPrefix)
+            {
+                foreach (var targetCondition in target)
+                {
+                    if (shortCardText.Contains(targetCondition))
+                    {
+                        if (!response.Contains(keyword))
+                            response.Add(keyword);
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        private static void UpdateSuffixKeywords(string cardText, List<string> response, string keyword, List<string> prefix, List<string> target, List<string> suffix)
+        {
+            bool containsPrefix = false;
+            bool containsTarget = false;
             string shortCardText = string.Empty;
 
             foreach(var prefixCondition in prefix)
@@ -337,6 +519,22 @@ namespace MTGLambda.MTGLambda.Services.MTG
             }
 
             if (containsPrefix)
+            {
+                foreach(var targetCondition in target)
+                {
+                    if (shortCardText.Contains(targetCondition))
+                    {
+                        //Chop off everything up to and including target
+                        int index = shortCardText.IndexOf(targetCondition);
+                        shortCardText = cardText.Remove(0, index + targetCondition.Length);
+
+                        containsTarget = true;
+                        break;
+                    }
+                }
+            }
+
+            if (containsTarget)
             {
                 foreach(var suffixCondition in suffix)
                 {

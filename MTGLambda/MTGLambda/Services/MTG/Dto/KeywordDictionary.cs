@@ -18,7 +18,12 @@ namespace MTGLambda.MTGLambda.Services.MTG.Dto
         public List<string> Prefix { get; set; }
 
         /// <summary>
-        /// If contained after listed prefix, has keyword unless negate
+        /// If contained after listed prefix, has keyword unless suffix or negate
+        /// </summary>
+        public List<string> Target { get; set; }
+
+        /// <summary>
+        /// If contained after listed prefix and target (if exists), has keyword unless negate
         /// </summary>
         public List<string> Suffix { get; set; }
 

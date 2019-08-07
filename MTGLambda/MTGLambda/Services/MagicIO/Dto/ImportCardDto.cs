@@ -2,9 +2,11 @@
 using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
 using MTGLambda.MTGLambda.Helpers.S3;
 using MTGLambda.MTGLambda.Helpers.S3.Dto;
+using MTGLambda.MTGLambda.Services.ScryFall;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace MTGLambda.MTGLambda.Services.MagicIO.Dto
@@ -429,7 +431,7 @@ namespace MTGLambda.MTGLambda.Services.MagicIO.Dto
 
             foreach (var importColor in manaCost.Split(new char[] { '{', '}' }))
             {
-                LambdaLogger.Log($"importColor: { importColor }");
+                //LambdaLogger.Log($"importColor: { importColor }");
 
                 switch (importColor)
                 {

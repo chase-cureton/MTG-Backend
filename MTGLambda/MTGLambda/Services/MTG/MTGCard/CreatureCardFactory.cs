@@ -60,7 +60,7 @@ namespace MTGLambda.MTGLambda.Services.MTG.MTGCard
                     ManaCost = manaCost,
                     CardText = cardText,
                     Colors = colors,
-                    Keywords = keywords
+                    Tags = string.Join(" // ", keywords)
                 };
             }
             catch(ValidationException vExp)

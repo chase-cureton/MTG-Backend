@@ -52,7 +52,7 @@
 				"Handler": "MTGLambda::MTGLambda.Functions::ImportCards",
 				"Runtime": "dotnetcore2.1",
 				"CodeUri": "",
-				"MemorySize": 256,
+				"MemorySize": 1024,
 				"Timeout": 300,
 				"Role": null,
 				"Policies": [ "AWSLambdaBasicExecutionRole" ],
@@ -73,7 +73,7 @@
 				"Handler": "MTGLambda::MTGLambda.Functions::ImportCardsFromAPI",
 				"Runtime": "dotnetcore2.1",
 				"CodeUri": "",
-				"MemorySize": 256,
+				"MemorySize": 1024,
 				"Timeout": 300,
 				"Role": null,
 				"Policies": [ "AWSLambdaBasicExecutionRole" ],
@@ -82,6 +82,27 @@
 						"Type": "Api",
 						"Properties": {
 							"Path": "/mtg-services/importcards-api",
+							"Method": "POST"
+						}
+					}
+				}
+			}
+		},
+		"ScryImportCards" : {
+			"Type" : "AWS::Serverless::Function",
+			"Properties": {
+				"Handler": "MTGLambda::MTGLambda.Functions::ScryImportCards",
+				"Runtime": "dotnetcore2.1",
+				"CodeUri": "",
+				"MemorySize": 1024,
+				"Timeout": 300,
+				"Role": null,
+				"Policies": [ "AWSLambdaBasicExecutionRole" ],
+				"Events": {
+					"PutResource": {
+						"Type": "Api",
+						"Properties": {
+							"Path": "/mtg-services/importcards-scry",
 							"Method": "POST"
 						}
 					}

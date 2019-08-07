@@ -11,6 +11,11 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaCard
     [DynamoDBTable("Card")]
     public class Card
     {
+        [DynamoDBHashKey] //ToQuery: BaseType = (no comparison)
+        public virtual string BaseType { get; set; }
+        [DynamoDBRangeKey] //ToSort: Id >, <, contains (I think..)
+        public string Id { get; set; }
+
         [DynamoDBProperty]
         public virtual string Name { get; set; }
         [DynamoDBProperty]
@@ -21,18 +26,14 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaCard
         public virtual string CardText { get; set; }
         [DynamoDBProperty]
         public virtual string Type { get; set; }
-        [DynamoDBHashKey]
-        public virtual string BaseType { get; set; }
         [DynamoDBProperty]
-        public virtual List<string> Keywords { get; set; }
+        public string Tags { get; set; }
         [DynamoDBProperty]
         public virtual string Power { get; set; }
         [DynamoDBProperty]
         public virtual string Toughness { get; set; }
         [DynamoDBProperty]
         public virtual string ImageUrl { get; set; }
-        [DynamoDBRangeKey]
-        public string Id { get; set; }
         [DynamoDBProperty]
         public string Rarity { get; set; }
         [DynamoDBProperty]
@@ -46,7 +47,8 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaCard
         [DynamoDBProperty]
         public virtual string ColorIdentity { get; set; }
 
-        [DynamoDBProperty] //Cost from TCGPlayer.com
+
+        [DynamoDBProperty]
         public float TCGMarketPrice { get; set; }
         [DynamoDBProperty]
         public float TCGMarketPrice_Foil { get; set; }
@@ -55,10 +57,21 @@ namespace MTGLambda.MTGLambda.DataClass.MTGLambdaCard
         [DynamoDBProperty]
         public long TCGGroupId { get; set; }
         
+        //Newly ADDED!!!
+        [DynamoDBProperty]
+        public bool IsDouble { get; set; }
+        [DynamoDBProperty]
+        public string BackCardText { get; set; }
+        [DynamoDBProperty]
+        public string Loyalty { get; set; }
+        [DynamoDBProperty]
+        public string BackCardImageUrl { get; set; }
+        [DynamoDBProperty]
+        public string Mana { get; set; }
+        
         public Card()
         {
             Colors = new Dictionary<string, int>();
-            Keywords = new List<string>();
         }
 
         public virtual string DescribeOverview()

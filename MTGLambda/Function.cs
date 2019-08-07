@@ -314,6 +314,66 @@ namespace MTGLambda
             LambdaLogger.Log($"Leaving: ImportCards({ JsonConvert.SerializeObject(response) })");
             return response;
         }
+
+        public async Task<APIGatewayProxyResponse> ScryImportCards(APIGatewayProxyRequest request, ILambdaContext context)
+        {
+            LambdaLogger.Log($"Entering: ScryImportCards({ JsonConvert.SerializeObject(request) })");
+
+            var response = new APIGatewayProxyResponse()
+            {
+                StatusCode = (int)HttpStatusCode.OK,
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json" },
+                    //{ "Access-Control-Allow-Origin", "*" }
+                }
+            };
+
+            try
+            {
+                var input = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.Body);
+                var importService = ServiceFactory.GetService<ImportService>();
+
+                if (input.ContainsKey("import_all"))
+                {
+                    importService.ScryImportCards(true);
+                }
+                else if (input.ContainsKey("card_start") && input.ContainsKey("card_end"))
+                {
+                    int start = int.Parse(input["card_start"]);
+                    int end = int.Parse(input["card_end"]);
+
+                    importService.ScryImportCards(false, start, end);
+                }
+                    
+            }
+            catch (Exception exp)
+            {
+                LambdaLogger.Log($"Error: { exp }");
+
+                Dictionary<string, string> body = new Dictionary<string, string>()
+                {
+                    { "Message", "y u breaking my stuff?" },
+                    { "Error", $"This is all you get, here's your peasant error: { exp.Message }" }
+                };
+
+                var errorResponse = new APIGatewayProxyResponse
+                {
+                    StatusCode = (int)HttpStatusCode.InternalServerError,
+                    Headers = new Dictionary<string, string> {
+                        { "Content-Type", "application/json" },
+                    },
+                    Body = JsonConvert.SerializeObject(body)
+                };
+
+                LambdaLogger.Log($"Leaving: ScryImportCards({ JsonConvert.SerializeObject(errorResponse) })");
+                return errorResponse;
+            }
+
+            LambdaLogger.Log($"Leaving: ScryImportCards({ JsonConvert.SerializeObject(response) })");
+            return response;
+        }
+
         /// <summary>
         /// Imports cards from API into S3 files
         /// </summary>

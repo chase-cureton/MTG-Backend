@@ -312,10 +312,7 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
             LambdaLogger.Log($"Leaving: FindFromRequest({ JsonConvert.SerializeObject(response) })");
 
-            var cardList = response.Where(c => !string.IsNullOrWhiteSpace(c.ImageUrl))
-                                   .GroupBy(c => c.CardText)
-                                   .Select(g => g.First())
-                                   .ToList();
+            return response;
 
             //if (request.IncludePrice)
             //{
@@ -338,8 +335,6 @@ namespace MTGLambda.MTGLambda.Services.MTG
             //    else
             //        LambdaLogger.Log($"Request Failure for TCG Search: { JsonConvert.SerializeObject(tcgRequest) }");
             //}
-
-            return cardList;
         }
 
         public void SaveCard(Card card)

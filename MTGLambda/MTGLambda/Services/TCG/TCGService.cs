@@ -14,6 +14,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using MTGLambda.MTGLambda.Helpers.Http;
+using MTGLambda.MTGLambda.Helpers.Http.Dto;
 
 namespace MTGLambda.MTGLambda.Services.TCG
 {
@@ -171,38 +173,59 @@ namespace MTGLambda.MTGLambda.Services.TCG
             {
                 string url = $"{TCGConstants.SEARCH_URL}";
 
-                StringContent content = new StringContent(JsonConvert.SerializeObject(request));
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+                //StringContent content = new StringContent(JsonConvert.SerializeObject(request), Encoding.UTF8, "application/json");
 
-                using (HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, url))
+                var httpRequest = new HttpRequest
                 {
-                    httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
-
-                    httpRequest.Content = content;
-
-                    LambdaLogger.Log($"Http Request: {JsonConvert.SerializeObject(httpRequest)}");
-
-                    HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
-
-                    LambdaLogger.Log($"Http Response: {JsonConvert.SerializeObject(httpResponse)}");
-
-                    if (httpResponse != null)
+                    Url = url,
+                    Headers = new Dictionary<string, string>
                     {
-                        if (httpResponse.IsSuccessStatusCode)
-                        {
-                            string httpResponseContent = await httpResponse.Content.ReadAsStringAsync();
+                        { "Content-Type", "application/json" },
+                        { "Authorization", $"Bearer {await GetToken()}" }
+                    },
+                    Content = JsonConvert.SerializeObject(request)
+                };
 
-                            LambdaLogger.Log($"Http Response Content: {httpResponseContent}");
+                LambdaLogger.Log($"Http Request: {JsonConvert.SerializeObject(httpRequest)}");
 
-                            response = JsonConvert.DeserializeObject<TCGSearchResponse>(httpResponseContent);
+                var httpResponse = HttpHelper.Post(httpRequest);
 
-                            LambdaLogger.Log($"SearchCategoryProducts Response: {JsonConvert.SerializeObject(response)}");
+                LambdaLogger.Log($"Http Response: {JsonConvert.SerializeObject(httpResponse)}");
 
-                            if (!response.success)
-                                throw new Exception($"TCG Error(s): { string.Join(" - ", response.errors) }");
-                        }
+                if (httpResponse != null)
+                {
+                    if (httpResponse.IsSuccessStatusCode)
+                    {
+                        string httpResponseContent = httpResponse.Content;
+
+                        LambdaLogger.Log($"Http Response Content: {httpResponseContent}");
+
+                        response = JsonConvert.DeserializeObject<TCGSearchResponse>(httpResponseContent);
+
+                        LambdaLogger.Log($"SearchCategoryProducts Response: {JsonConvert.SerializeObject(response)}");
+
+                        if (!response.success)
+                            throw new Exception($"TCG Error(s): { string.Join(" - ", response.errors) }");
                     }
                 }
+
+                //using (HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, url))
+                //using (var httpContent = HttpHelper.CreateHttpContent((TCGSearchRequest)request))
+                //{
+                //    httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
+
+                //    LambdaLogger.Log($"TCGRequestDto: { JsonConvert.SerializeObject(request) }");
+                //    LambdaLogger.Log($"HTTP Content: { JsonConvert.SerializeObject(httpContent) }");
+
+                //    httpRequest.Content = httpContent;
+
+                //    LambdaLogger.Log($"Http Request: {JsonConvert.SerializeObject(httpRequest)}");
+
+                //    HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
+
+                //    LambdaLogger.Log($"Http Response: {JsonConvert.SerializeObject(httpResponse)}");
+
+                //}
             }
             catch(Exception exp)
             {
@@ -285,11 +308,11 @@ namespace MTGLambda.MTGLambda.Services.TCG
                 {
                     httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
 
-                    LambdaLogger.Log($"Http Request: {JsonConvert.SerializeObject(httpRequest)}");
+                    LambdaLogger.Log($"Add TCGPRice Http Request: {JsonConvert.SerializeObject(httpRequest)}");
 
                     HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
 
-                    LambdaLogger.Log($"Http Response: {JsonConvert.SerializeObject(httpResponse)}");
+                    LambdaLogger.Log($"Add TCGPrice Http Response: {JsonConvert.SerializeObject(httpResponse)}");
 
                     if (httpResponse != null)
                     {
@@ -362,7 +385,9 @@ namespace MTGLambda.MTGLambda.Services.TCG
 
                 var request = new TCGSearchRequest
                 {
-                    filters = new List<TCGSearchFilter>() { filter }
+                    filters = new List<TCGSearchFilter>() { filter },
+                    limit = 10,
+                    offset = 0
                 };
 
                 var searchResponse = await Search(request);
