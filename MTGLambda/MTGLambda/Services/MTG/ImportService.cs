@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MTGLambda.MTGLambda.Services.MTG
 {
@@ -202,12 +203,23 @@ namespace MTGLambda.MTGLambda.Services.MTG
             LambdaLogger.Log($"Leaving: ImportCards({pageStart}, { pageEnd }, {pageSize})");
         }
 
-        public void ScryImportCards(bool importAll, int cardStart = 0, int cardEnd = 20273)
+        public async Task ScryImportCards(ScryCardImportRequest input)
         {
-            LambdaLogger.Log($"Entering: ScryImportCards({importAll}, {cardStart} -> {cardEnd})");
+            LambdaLogger.Log($"Entering: ScryImportCards({ JsonConvert.SerializeObject(input) })");
 
             try
             {
+                bool importAll = input.import_all;
+                bool containsNames = input.names.Count > 0;
+                int cardStart = 0;
+                int cardEnd = 20723;
+
+                if (input.card_end != 0)
+                {
+                    cardStart = input.card_start;
+                    cardEnd = input.card_end;
+                }
+
                 var scryCards = JsonConvert.DeserializeObject<List<ScryCardDto>>(S3Helper.GetFile(new S3GetFileRequest
                 {
                     FilePath = $"Imports/ScryImports/scryfall-oracle-cards.json"
@@ -232,9 +244,10 @@ namespace MTGLambda.MTGLambda.Services.MTG
                             if (!string.IsNullOrWhiteSpace(newCard.BackCardText))
                             {
                                 var keywords = newCard.Tags
+                                                      .Split(" // ")
                                                       .ToList();
 
-                                keywords.AddRange(String.Join(" // ", TranslateCardText(newCard.BackCardText)));
+                                keywords.AddRange(TranslateCardText(newCard.BackCardText));
 
                                 newCard.Tags = String.Join(" // ", keywords);
                             }
@@ -245,9 +258,9 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
                             if (cardList.Count == 25 || scryCard == scryCards.Last())
                             {
-                                SvcContext.Repository
-                                          .Cards
-                                          .Save(cardList);
+                                await SvcContext.Repository
+                                                .Cards
+                                                .SaveAsync(cardList);
 
                                 cardList.Clear();
                             }
@@ -255,6 +268,26 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
                         i++;
                     }
+                }
+                else if (containsNames)
+                {
+                    scryCards = scryCards.Where(x => x.legalities != null && x.legalities["commander"] == "legal").ToList();
+
+                    var names = input.names;
+
+                    foreach(var name in names)
+                    {
+                        var scryCard = scryCards.Where(x => x.Name == name)
+                                                .FirstOrDefault();
+
+                        var newCard = scryCard.Map(scryCard);
+
+                        cardList.Add(newCard);
+                    }
+
+                    await SvcContext.Repository
+                                    .Cards
+                                    .SaveAsync(cardList);
                 }
                 else
                 {
@@ -284,9 +317,9 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
                         if (cardList.Count == 25 || i == cardEnd)
                         {
-                            SvcContext.Repository
-                                      .Cards
-                                      .Save(cardList);
+                            await SvcContext.Repository
+                                            .Cards
+                                            .SaveAsync(cardList);
 
                             cardList.Clear();
                         }
@@ -298,7 +331,7 @@ namespace MTGLambda.MTGLambda.Services.MTG
                 LambdaLogger.Log($"Error: { exp }");
             }
 
-            LambdaLogger.Log($"Leaving: ScryImportCards({importAll}, {cardStart} -> {cardEnd})");
+            LambdaLogger.Log($"Leaving: ScryImportCards({ JsonConvert.SerializeObject(input) })");
         }
 
         /// <summary>

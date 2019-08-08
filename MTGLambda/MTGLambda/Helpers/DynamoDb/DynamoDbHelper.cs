@@ -213,6 +213,14 @@ namespace MTGLambda.MTGLambda.Helpers.DynamoDb
             //batch.ExecuteAsync();
         }
 
+        public static async Task SaveAsync<T>(IEnumerable<T> list)
+        {
+            var batch = _context.CreateBatchWrite<T>();
+            batch.AddPutItems(list.ToList());
+
+            await _context.ExecuteBatchWriteAsync(new BatchWrite[] { batch });
+        }
+
         /// <summary>
         /// Scans table and returns results based on conditions
         /// Note: Only to be used for small record size tables

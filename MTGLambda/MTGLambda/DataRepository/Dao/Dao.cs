@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MTGLambda.MTGLambda.DataRepository.Dao
 {
@@ -80,6 +81,22 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
                 List<T> records = saveItems.ToList();
 
                 _daoContext.SaveTableItems<T>(saveItems);
+            }
+            catch(Exception exp)
+            {
+                throw exp;
+            }
+        }
+
+        public async Task SaveAsync(IEnumerable<T> saveItems)
+        {
+            List<T> updatedItems = new List<T>();
+
+            try
+            {
+                List<T> records = saveItems.ToList();
+
+                await _daoContext.SaveTableItemsAsync<T>(saveItems);
             }
             catch(Exception exp)
             {

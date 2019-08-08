@@ -250,6 +250,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             return FindAll(conditions);
         }
 
+        //Keyword (Tags) Filters
+        public IEnumerable<Card> FindFromKeywordAndManaCostAndColorsAndBaseType(GetCardRequest request)
+        {
+            LambdaLogger.Log($"Entering: FindFromKeywordAndManaCostAndColorsAndBaseType({ JsonConvert.SerializeObject(request) })");
+
+            var conditions = new List<ScanCondition>();
+
+            AddSearchConditions(request, conditions);
+            AddManaCostConditions(request, conditions);
+            AddColorConditions(request, conditions);
+            AddBaseTypeConditions(request, conditions);
+
+            return FindAll(conditions);
+        }
+
         //No content (Mana Cost)
         public IEnumerable<Card> FindFromManaCost(GetCardRequest request)
         {
@@ -363,11 +378,15 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
                 //conditions.Add(new ScanCondition("Name", ScanOperator.Contains, searchTerm));
                 //conditions.Add(new ScanCondition("Name", ScanOperator.Contains, formattedTerm));
             }
+            else if (!string.IsNullOrWhiteSpace(request.KeywordsFilter))
+            {
+                conditions.Add(new ScanCondition("Tags", ScanOperator.Contains, request.KeywordsFilter));
+            }
         }
 
         private string FormatPreposition(string prep)
         {
-            List<string> noCaps = new List<string>() { "Of", "And", "Or", "In", "At", "The" };
+            List<string> noCaps = new List<string>() { "Of", "And", "Or", "In", "At", "The", "To" };
 
             if (noCaps.Contains(prep)) 
             {

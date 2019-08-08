@@ -14,6 +14,7 @@ using MTGLambda.MTGLambda.Services.MTG;
 using MTGLambda.MTGLambda.Services;
 using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
 using MTGLambda.MTGLambda.Services.MTG.Dto;
+using MTGLambda.MTGLambda.Services.ScryFall;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -331,21 +332,11 @@ namespace MTGLambda
 
             try
             {
-                var input = JsonConvert.DeserializeObject<Dictionary<string, string>>(request.Body);
+                var input = JsonConvert.DeserializeObject<ScryCardImportRequest>(request.Body);
                 var importService = ServiceFactory.GetService<ImportService>();
 
-                if (input.ContainsKey("import_all"))
-                {
-                    importService.ScryImportCards(true);
-                }
-                else if (input.ContainsKey("card_start") && input.ContainsKey("card_end"))
-                {
-                    int start = int.Parse(input["card_start"]);
-                    int end = int.Parse(input["card_end"]);
+                await importService.ScryImportCards(input);
 
-                    importService.ScryImportCards(false, start, end);
-                }
-                    
             }
             catch (Exception exp)
             {

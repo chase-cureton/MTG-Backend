@@ -247,7 +247,10 @@ namespace MTGLambda.MTGLambda.Services.MTG
                 }
                 else if (!string.IsNullOrWhiteSpace(request.KeywordsFilter))
                 {
-                    throw new NotImplementedException("Keyword filter not supported yet");
+                    response = SvcContext.Repository
+                                         .Cards
+                                         .FindFromKeywordAndManaCostAndColorsAndBaseType(request)
+                                         .ToList();
                 }
                 else
                 {

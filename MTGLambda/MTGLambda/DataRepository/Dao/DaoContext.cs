@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MTGLambda.MTGLambda.DataRepository.Dao
 {
@@ -102,6 +103,19 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             }
 
             //LambdaLogger.Log($"Leaving: SaveTableItems({ JsonConvert.SerializeObject(items) }");
+        }
+
+        public async Task SaveTableItemsAsync<T>(IEnumerable<T> items)
+        {
+            try
+            {
+                await DynamoDbHelper.SaveAsync<T>(items);
+            }
+            catch (Exception exp)
+            {
+                LambdaLogger.Log($"Error occurred during SaveTableItemsAsync({ JsonConvert.SerializeObject(items) }) - Exception: { exp }");
+                throw;
+            }
         }
 
 
