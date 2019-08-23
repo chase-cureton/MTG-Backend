@@ -21,11 +21,11 @@ namespace MTGLambda.MTGLambda.Services.TCG.Dto
     public class TCGProductPriceDto
     {
         public long productId { get; set; }
-        public float lowPrice { get; set; }
-        public float midPrice { get; set; }
-        public float highPrice { get; set; }
-        public float marketPrice { get; set; }
-        public float directLowPrice { get; set; }
+        public float? lowPrice { get; set; }
+        public float? midPrice { get; set; }
+        public float? highPrice { get; set; }
+        public float? marketPrice { get; set; }
+        public float? directLowPrice { get; set; }
         public string subTypeName { get; set; }
     }
 }

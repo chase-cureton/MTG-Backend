@@ -431,6 +431,67 @@ namespace MTGLambda
         }
 
         /// <summary>
+        /// Saves all deck items for user
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public async Task<APIGatewayProxyResponse> SaveUserDeck(APIGatewayProxyRequest request, ILambdaContext context)
+        {
+            LambdaLogger.Log($"Entering: SaveUserDecks({ JsonConvert.SerializeObject(request) })");
+
+            var response = new APIGatewayProxyResponse()
+            {
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json" },
+                    { "Access-Control-Allow-Origin", "*" }
+                }
+            };
+
+            try
+            {
+                if (request.Body == "CloudWatch")
+                    return response;
+
+                var requestDto = JsonConvert.DeserializeObject<SaveDeckRequest>(request.Body);
+
+                var MTGService = ServiceFactory.GetService<MTGService>();
+
+                await MTGService.SaveUserDeck(requestDto);
+
+                response.Body = JsonConvert.SerializeObject(new Dictionary<string, string> { { "Message", "Good job, u did it. Here's your 200 or w/e." } });
+                response.StatusCode = (int)HttpStatusCode.OK;
+            }
+            catch(Exception exp)
+            {
+                LambdaLogger.Log($"Error: { exp }");
+
+                Dictionary<string, string> body = new Dictionary<string, string>()
+                {
+                    { "Message", "y u breaking my stuff?" },
+                    { "Error", $"This is all you get, here's your peasant error: { exp.Message }" }
+                };
+
+                var errorResponse = new APIGatewayProxyResponse
+                {
+                    StatusCode = (int)HttpStatusCode.InternalServerError,
+                    Headers = new Dictionary<string, string> {
+                        { "Content-Type", "application/json" },
+                        { "Access-Control-Allow-Origin", "*" }
+                    },
+                    Body = JsonConvert.SerializeObject(body)
+                };
+
+                LambdaLogger.Log($"Leaving: SaveUserDeck({ JsonConvert.SerializeObject(errorResponse) })");
+                return errorResponse;
+            }
+
+            LambdaLogger.Log($"Leaving: SaveUserDeck({ JsonConvert.SerializeObject(response) })");
+            return response;
+        }
+
+        /// <summary>
         /// Cross origin support / set this up as preflight options method
         /// for each method that returns to a browser
         /// </summary>

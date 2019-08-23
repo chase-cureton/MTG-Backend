@@ -12,5 +12,7 @@ namespace MTGLambda.MTGLambda.Services.MTG.Constants
 
         public const string AuthenticateJsonFilepath = "Configuration/TCG-Access.json";
         public const string KeywordDictionaryFilepath = "Configuration/KeywordDictionary.json";
+
+        public const string DeckStatsCardName = "DeckStatsItem";
     }
 }

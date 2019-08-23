@@ -208,24 +208,6 @@ namespace MTGLambda.MTGLambda.Services.TCG
                             throw new Exception($"TCG Error(s): { string.Join(" - ", response.errors) }");
                     }
                 }
-
-                //using (HttpRequestMessage httpRequest = new HttpRequestMessage(HttpMethod.Post, url))
-                //using (var httpContent = HttpHelper.CreateHttpContent((TCGSearchRequest)request))
-                //{
-                //    httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await GetToken());
-
-                //    LambdaLogger.Log($"TCGRequestDto: { JsonConvert.SerializeObject(request) }");
-                //    LambdaLogger.Log($"HTTP Content: { JsonConvert.SerializeObject(httpContent) }");
-
-                //    httpRequest.Content = httpContent;
-
-                //    LambdaLogger.Log($"Http Request: {JsonConvert.SerializeObject(httpRequest)}");
-
-                //    HttpResponseMessage httpResponse = await httpClient.SendAsync(httpRequest);
-
-                //    LambdaLogger.Log($"Http Response: {JsonConvert.SerializeObject(httpResponse)}");
-
-                //}
             }
             catch(Exception exp)
             {
@@ -298,7 +280,7 @@ namespace MTGLambda.MTGLambda.Services.TCG
             return response;
         }
 
-        public async void AddTCGPrice(List<Card> importCards)
+        public async Task AddTCGPrice(List<Card> importCards)
         {
             try
             {
@@ -326,7 +308,10 @@ namespace MTGLambda.MTGLambda.Services.TCG
 
                             LambdaLogger.Log($"SearchCategoryProducts Response: {JsonConvert.SerializeObject(response)}");
 
-                            if (response.success)
+                            if (!response.success)
+                                LambdaLogger.Log($"TCG Error(s): { string.Join(" - ", response.errors) }");
+
+                            if (response.results.Count > 0)
                             {
                                 foreach(var importCard in importCards)
                                 {
@@ -335,24 +320,26 @@ namespace MTGLambda.MTGLambda.Services.TCG
                                                               .Where(x => x.subTypeName == TCGConstants.SUB_TYPE_NORMAL)
                                                               .FirstOrDefault();
 
+                                    LambdaLogger.Log($"Match Result: { JsonConvert.SerializeObject(matchResult) }");
+
                                     var foilMatchResult = response.results
                                                                   .Where(x => x.productId == importCard.TCGProductId)
                                                                   .Where(x => x.subTypeName == TCGConstants.SUB_TYPE_FOIL)
                                                                   .FirstOrDefault();
 
+                                    LambdaLogger.Log($"Foil Match Results: { JsonConvert.SerializeObject(foilMatchResult) }");
+
                                     if (matchResult != null)
                                     {
-                                        importCard.TCGMarketPrice = matchResult.marketPrice;
+                                        importCard.TCGMarketPrice = matchResult.marketPrice.HasValue ? matchResult.marketPrice.Value : 0;
                                     }
 
                                     if (foilMatchResult != null)
                                     {
-                                        importCard.TCGMarketPrice_Foil = foilMatchResult.marketPrice;
+                                        importCard.TCGMarketPrice_Foil = foilMatchResult.marketPrice.HasValue ? foilMatchResult.marketPrice.Value : 0;
                                     }
                                 }
                             }
-                            else
-                                LambdaLogger.Log($"TCG Error(s): { string.Join(" - ", response.errors) }");
                         }
                     }
                 }

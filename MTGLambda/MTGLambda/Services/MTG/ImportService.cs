@@ -210,6 +210,7 @@ namespace MTGLambda.MTGLambda.Services.MTG
             try
             {
                 bool importAll = input.import_all;
+                bool importPrices = input.import_prices;
                 bool containsNames = input.names.Count > 0;
                 int cardStart = 0;
                 int cardEnd = 20723;
@@ -219,6 +220,8 @@ namespace MTGLambda.MTGLambda.Services.MTG
                     cardStart = input.card_start;
                     cardEnd = input.card_end;
                 }
+
+                var TCGService = ServiceFactory.GetService<TCGService>();
 
                 var scryCards = JsonConvert.DeserializeObject<List<ScryCardDto>>(S3Helper.GetFile(new S3GetFileRequest
                 {
@@ -258,6 +261,11 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
                             if (cardList.Count == 25 || scryCard == scryCards.Last())
                             {
+                                if (importPrices)
+                                    await TCGService.AddTCGPrice(cardList);
+
+                                LambdaLogger.Log($"Card List to save: { JsonConvert.SerializeObject(cardList) }");
+
                                 await SvcContext.Repository
                                                 .Cards
                                                 .SaveAsync(cardList);
@@ -284,6 +292,11 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
                         cardList.Add(newCard);
                     }
+
+                    if (importPrices)
+                        await TCGService.AddTCGPrice(cardList);
+
+                    LambdaLogger.Log($"Card List to save: { JsonConvert.SerializeObject(cardList) }");
 
                     await SvcContext.Repository
                                     .Cards
@@ -317,6 +330,11 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
                         if (cardList.Count == 25 || i == cardEnd)
                         {
+                            if (importPrices)
+                                await TCGService.AddTCGPrice(cardList);
+
+                            LambdaLogger.Log($"Card List to save: { JsonConvert.SerializeObject(cardList) }");
+
                             await SvcContext.Repository
                                             .Cards
                                             .SaveAsync(cardList);

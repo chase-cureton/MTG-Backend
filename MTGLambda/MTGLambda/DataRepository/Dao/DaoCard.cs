@@ -29,11 +29,12 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             return card;
         }
 
+        //UNUSED
         public IEnumerable<Card> FindByColors(List<string> colors)
         {
             return FindAll(string.Format("Colors in ({0})", String.Join(',', colors)));
         }
-
+        //UNUSED
         public IEnumerable<Card> FindByManaCost(string convertedManaCost)
         {
             return FindAll(string.Format("ManaCost = {0}", convertedManaCost));
@@ -73,7 +74,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             AddColorConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            if (request.ColorFilter.ContainsValue(false))
+            {
+                var negateColors = request.ColorFilter
+                                          .Where(x => x.Value == false)
+                                          .Select(x => x.Key)
+                                          .ToList();
+
+                foreach (var negateColor in negateColors)
+                    results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            }
+
+            return results;
         }
 
         public IEnumerable<Card> FindFromNameAndBaseType(GetCardRequest request)
@@ -101,7 +116,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             AddColorConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            if (request.ColorFilter.ContainsValue(false))
+            {
+                var negateColors = request.ColorFilter
+                                          .Where(x => x.Value == false)
+                                          .Select(x => x.Key)
+                                          .ToList();
+
+                foreach (var negateColor in negateColors)
+                    results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            }
+
+            return results;
         }
 
         public IEnumerable<Card> FindFromNameAndManaCostAndBaseType(GetCardRequest request)
@@ -131,7 +160,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             AddColorConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            if (request.ColorFilter.ContainsValue(false))
+            {
+                var negateColors = request.ColorFilter
+                                          .Where(x => x.Value == false)
+                                          .Select(x => x.Key)
+                                          .ToList();
+
+                foreach (var negateColor in negateColors)
+                    results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            }
+
+            return results;
         }
 
         public IEnumerable<Card> FindFromNameAndManaCostAndColorsAndBaseType(GetCardRequest request)
@@ -148,7 +191,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             AddBaseTypeConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            if (request.ColorFilter.ContainsValue(false))
+            {
+                var negateColors = request.ColorFilter
+                                          .Where(x => x.Value == false)
+                                          .Select(x => x.Key)
+                                          .ToList();
+
+                foreach (var negateColor in negateColors)
+                    results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            }
+
+            return results;
         }
 
         //Text Filters
@@ -181,7 +238,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             AddColorConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
+
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            //}
+
+            return results;
         }
 
         public IEnumerable<Card> FindFromTextAndBaseType(GetCardRequest request)
@@ -207,7 +278,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             AddManaCostConditions(request, conditions);
             AddColorConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
+
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            //}
+
+            return results;
         }
 
         public IEnumerable<Card> FindFromTextAndManaCostAndBaseType(GetCardRequest request)
@@ -233,7 +318,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             AddBaseTypeConditions(request, conditions);
             AddColorConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
+
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            //}
+
+            return results;
         }
 
         public IEnumerable<Card> FindFromTextAndManaCostAndColorsAndBaseType(GetCardRequest request)
@@ -247,7 +346,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             AddColorConditions(request, conditions);
             AddBaseTypeConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
+
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            //}
+
+            return results;
         }
 
         //Keyword (Tags) Filters
@@ -262,7 +375,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             AddColorConditions(request, conditions);
             AddBaseTypeConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
+
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            //}
+
+            return results;
         }
 
         //No content (Mana Cost)
@@ -287,7 +414,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             AddColorConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
+
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            //}
+
+            return results;
         }
 
         public IEnumerable<Card> FindFromManaCostAndBaseType(GetCardRequest request)
@@ -315,7 +456,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             AddColorConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
+
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            //}
+
+            return results;
         }
 
         //No content (Base Type)
@@ -340,7 +495,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             AddColorConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
+
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            //}
+
+            return results;
         }
 
         //No content (Colors)
@@ -352,7 +521,21 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             AddColorConditions(request, conditions);
 
-            return FindAll(conditions);
+            var results = FindAll(conditions);
+
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
+
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+
+            //}
+
+            return results;
         }
         
         private void AddSearchConditions(GetCardRequest request, List<ScanCondition> conditions)
@@ -422,9 +605,9 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
                 conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.Contains, colorCondition));
             }
 
-            foreach(var excludeColorCondition in excludeList)
+            foreach(var negateCondition in excludeList)
             {
-                conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.Contains, excludeColorCondition));
+                conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.NotContains, negateCondition));
             }
 
             //if (containsList.Any())
@@ -485,7 +668,7 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             {
                 var objects = queryList.Select(x => (object)x).ToArray();
 
-                var condition = new ScanCondition("BaseType", ScanOperator.In, objects);
+                var condition = new ScanCondition("BaseType", ScanOperator.Contains, objects);
                 conditions.Add(condition);
             }
         }

@@ -16,18 +16,21 @@ namespace MTGLambda.MTGLambda.DataRepository
 
         #region Fields
         private Lazy<DaoCard> _daoCard;
-        private Lazy<DaoDeck> _daoDeck;
+        private Lazy<DaoDeckCard> _daoDeckCard;
+        private Lazy<DaoDeckStats> _daoDeckStats;
         #endregion
 
         #region Properties
         public DaoCard Cards => _daoCard.Value;
-        public DaoDeck Decks => _daoDeck.Value;
+        public DaoDeckCard DeckCards => _daoDeckCard.Value;
+        public DaoDeckStats DeckStats => _daoDeckStats.Value;
         #endregion
 
         private void Setup(DaoContext daoContext)
         {
             _daoCard = new Lazy<DaoCard>(() => new DaoCard(daoContext));
-            _daoDeck = new Lazy<DaoDeck>(() => new DaoDeck(daoContext));
+            _daoDeckCard = new Lazy<DaoDeckCard>(() => new DaoDeckCard(daoContext));
+            _daoDeckStats = new Lazy<DaoDeckStats>(() => new DaoDeckStats(daoContext));
         }
     }
 }

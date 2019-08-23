@@ -1,6 +1,8 @@
 ﻿using Amazon.Lambda.Core;
 using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
+using MTGLambda.MTGLambda.DataClass.MTGLambdaDeck;
 using MTGLambda.MTGLambda.Services.Common;
+using MTGLambda.MTGLambda.Services.MTG.Constants;
 using MTGLambda.MTGLambda.Services.MTG.Dto;
 using MTGLambda.MTGLambda.Services.TCG;
 using MTGLambda.MTGLambda.Services.TCG.Dto;
@@ -9,72 +11,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace MTGLambda.MTGLambda.Services.MTG
 {
     public class MTGService : BaseService
     {
         //S3 Stored Approach
-        public GetUserDecksResponse GetUserDecksS3(GetUserDecksRequest request)
-        {
-            LambdaLogger.Log($"Entering: GetUserDeck({ JsonConvert.SerializeObject(request) })");
-
-            GetUserDecksResponse response = new GetUserDecksResponse
-            {
-                IsSuccess = true
-            };
-
-            try
-            {
-                //Get user decks from request.userId
-                //S3 path: Users/Decks/* - 1 file per deck
-            }
-            catch(Exception exp)
-            {
-                LambdaLogger.Log($"Error: { exp }");
-
-                response.IsSuccess = false;
-                response.ErrorMessage = $"Error while retrieving decks for userId: { request.userId }";
-            }
-
-            LambdaLogger.Log($"Leaving: GetUserDeck({ JsonConvert.SerializeObject(response) })");
-
-            return response;
-        }
-
-        public GetUserDecksResponse GetUserDecks(GetUserDecksRequest request)
-        {
-            LambdaLogger.Log($"Entering: GetUserDecks( { JsonConvert.SerializeObject(request) })");
-
-            var response = new GetUserDecksResponse
-            {
-                IsSuccess = true
-            };
-
-            try
-            {
-                var userDecks = SvcContext.Repository.Decks.FindByUserId(request.userId);
-
-                LambdaLogger.Log($"User Decks: { JsonConvert.SerializeObject(userDecks) }");
-
-                response.decks = userDecks;
-            }
-            catch(Exception exp)
-            {
-                LambdaLogger.Log($"Error: { exp }");
-
-                response.IsSuccess = false;
-                response.ErrorMessage = "Error while getting user decks.";
-
-                LambdaLogger.Log($"Leaving: GetUserDecks( { JsonConvert.SerializeObject(response) })");
-                return response;
-            }
-
-
-            LambdaLogger.Log($"Leaving: GetUserDecks( { JsonConvert.SerializeObject(response) })");
-
-            return response;
-        }
 
         /// <summary>
         /// Get cards by searching name
@@ -340,6 +283,44 @@ namespace MTGLambda.MTGLambda.Services.MTG
             //}
         }
 
+        /// <summary>
+        /// Saves deck for a user
+        /// </summary>
+        public async Task SaveUserDeck(SaveDeckRequest request)
+        {
+            LambdaLogger.Log($"Entering: SaveUserDeck({ JsonConvert.SerializeObject(request) })");
+
+            try
+            {
+                DeckStats deckStats = new DeckStats
+                {
+                    CommanderName = request.CommanderName,
+                    DeckName = request.DeckName,
+                    Name = MTGServiceConstants.DeckStatsCardName,
+                    DeckMetricsJson = JsonConvert.SerializeObject(request.DeckMetrics)
+                };
+
+                LambdaLogger.Log($"About to save deck stats: { JsonConvert.SerializeObject(deckStats) }");
+
+                await SvcContext.Repository
+                                .DeckStats
+                                .SaveAsync(new List<DeckStats> { deckStats });
+
+                LambdaLogger.Log($"About to save deck cards for user: { request.UserName } & commander: { request.CommanderName }");
+
+                await SvcContext.Repository
+                                .DeckCards
+                                .SaveAsync(request.DeckCards);
+            }
+            catch(Exception exp)
+            {
+                LambdaLogger.Log($"Error: { exp }");
+                throw;
+            }
+
+            LambdaLogger.Log($"Leaving: SaveUserDeck({ JsonConvert.SerializeObject(request) })");
+        }
+
         public void SaveCard(Card card)
         {
             LambdaLogger.Log($"Entering: SaveCard({ JsonConvert.SerializeObject(card) })");
@@ -361,13 +342,6 @@ namespace MTGLambda.MTGLambda.Services.MTG
             }
 
             LambdaLogger.Log($"Leaving: SaveCard({ JsonConvert.SerializeObject(card) })");
-        }
-
-        public void SaveUserDeck()
-        {
-            LambdaLogger.Log($"Entering: SaveUserDeck({ JsonConvert.SerializeObject(string.Empty) })");
-
-            LambdaLogger.Log($"Leaving: SaveUserDeck({ JsonConvert.SerializeObject(string.Empty) })");
         }
     }
 }
