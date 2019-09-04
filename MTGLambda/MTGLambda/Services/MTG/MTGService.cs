@@ -1,4 +1,5 @@
 ﻿using Amazon.Lambda.Core;
+using AutoMapper;
 using MTGLambda.MTGLambda.DataClass.MTGLambdaCard;
 using MTGLambda.MTGLambda.DataClass.MTGLambdaDeck;
 using MTGLambda.MTGLambda.Services.Common;
@@ -297,8 +298,35 @@ namespace MTGLambda.MTGLambda.Services.MTG
                     CommanderName = request.CommanderName,
                     DeckName = request.DeckName,
                     Name = MTGServiceConstants.DeckStatsCardName,
+                    UserName = request.UserName,
                     DeckMetricsJson = JsonConvert.SerializeObject(request.DeckMetrics)
                 };
+
+                var existingDeckStats = SvcContext.Repository
+                                                  .DeckStats
+                                                  .FindFromUserAndDeckName(request.UserName, request.DeckName);
+
+                if (existingDeckStats != null)
+                {
+                    LambdaLogger.Log($"About to delete old deck stats: { request.DeckName }");
+
+                    await SvcContext.Repository
+                                    .DeckStats
+                                    .Delete(existingDeckStats);
+                }
+
+                var existingDeckCards = SvcContext.Repository
+                                                  .DeckCards
+                                                  .FindFromUserAndDeckName(request.UserName, request.DeckName);
+
+                if (existingDeckCards.Any())
+                {
+                    LambdaLogger.Log($"About to delete old deck cards: { request.DeckName }");
+
+                    await SvcContext.Repository
+                                    .DeckCards
+                                    .Delete(existingDeckCards);
+                }
 
                 LambdaLogger.Log($"About to save deck stats: { JsonConvert.SerializeObject(deckStats) }");
 
@@ -308,9 +336,41 @@ namespace MTGLambda.MTGLambda.Services.MTG
 
                 LambdaLogger.Log($"About to save deck cards for user: { request.UserName } & commander: { request.CommanderName }");
 
+                var config = new MapperConfiguration(x =>
+                {
+                    x.CreateMap<Card, DeckCard>();
+                });
+
+                var mapper = config.CreateMapper();
+
+                var cards = SvcContext.Repository
+                                      .Cards
+                                      .FindFromNames(request.DeckCards.Select(x => x.Name).ToList())
+                                      .ToList();
+
+                var deckCards = new List<DeckCard>();
+
+                foreach (var card in cards)
+                {
+
+                    if (card != null)
+                    {
+                        LambdaLogger.Log($"Found card for saved deck card: { JsonConvert.SerializeObject(card) }");
+
+                        var newDeckCard = mapper.Map<Card, DeckCard>(card);
+
+                        newDeckCard.DeckName = request.DeckName;
+                        newDeckCard.UserName = request.UserName;
+
+                        deckCards.Add(newDeckCard);
+                    }
+                }
+
+                LambdaLogger.Log($"About to save cards: { JsonConvert.SerializeObject(deckCards) }");
+
                 await SvcContext.Repository
                                 .DeckCards
-                                .SaveAsync(request.DeckCards);
+                                .SaveAsync(deckCards);
             }
             catch(Exception exp)
             {
@@ -319,6 +379,63 @@ namespace MTGLambda.MTGLambda.Services.MTG
             }
 
             LambdaLogger.Log($"Leaving: SaveUserDeck({ JsonConvert.SerializeObject(request) })");
+        }
+
+        /// <summary>
+        /// Loads deck fora a user
+        /// </summary>
+        /// <param name="card"></param>
+        public LoadDeckResponse LoadUserDeck(LoadDeckRequest request)
+        {
+            LambdaLogger.Log($"Entering: LoadUserDeck({ JsonConvert.SerializeObject(request) })");
+
+            var response = new LoadDeckResponse()
+            {
+                DeckName = request.DeckName,
+                UserName = request.UserName
+            };
+
+            try
+            {
+                var deckStats = SvcContext.Repository
+                                          .DeckStats
+                                          .FindFromUserAndDeckName(request.UserName, request.DeckName);
+
+                if (deckStats.Any())
+                {
+                    var deckStat = deckStats.FirstOrDefault();
+                    if (!string.IsNullOrWhiteSpace(deckStat.DeckMetricsJson))
+                    {
+                        var deckMetrics = JsonConvert.DeserializeObject<List<DeckMetric>>(deckStat.DeckMetricsJson);
+
+                        response.DeckMetrics = deckMetrics;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(deckStat.CommanderName))
+                    {
+                        response.CommanderName = deckStat.CommanderName;
+                    }
+                }
+
+                var deckCards = SvcContext.Repository
+                                          .DeckCards
+                                          .FindFromUserAndDeckName(request.UserName, request.DeckName)
+                                          .ToList();
+
+                if (deckCards.Any())
+                {
+                    response.DeckCards = deckCards;
+                }
+            }
+            catch(Exception exp)
+            {
+                LambdaLogger.Log($"Error: { exp }");
+                throw;
+            }
+
+            LambdaLogger.Log($"Leaving: LoadUserDeck({ JsonConvert.SerializeObject(response) })");
+
+            return response;
         }
 
         public void SaveCard(Card card)

@@ -111,7 +111,8 @@ namespace MTGLambda
                 Headers = new Dictionary<string, string>
                 {
                     { "Content-Type", "application/json" },
-                    { "Access-Control-Allow-Origin", "*" }
+                    { "Access-Control-Allow-Origin", "*" },
+                    { "Cache-Control", "no-cache" }
                 }
             };
 
@@ -130,8 +131,20 @@ namespace MTGLambda
                 requestDto.IncludePrice = true;
 
                 var cards = MTGService.GetCardsFromRequest(requestDto)
-                                      .OrderBy(x => x.ManaCost);
+                                      .OrderBy(x => x.ManaCost)
+                                      .ToList();
 
+                if (requestDto.ColorFilter != null)
+                {
+                    //If negating
+                    if (requestDto.ColorFilter.Any(x => x.Value == false))
+                    {
+                        foreach (var cfItem in requestDto.ColorFilter.Where(x => x.Value == false))
+                            cards = cards.Where(x => string.IsNullOrWhiteSpace(x.ColorIdentity) || 
+                                                     !x.ColorIdentity
+                                                       .Contains(cfItem.Key)).ToList();
+                    }
+                }
 
                 LambdaLogger.Log($"Cards retrieved => cards: { JsonConvert.SerializeObject(cards) }");
 
@@ -153,7 +166,8 @@ namespace MTGLambda
                     StatusCode = (int)HttpStatusCode.InternalServerError,
                     Headers = new Dictionary<string, string> {
                         { "Content-Type", "application/json" },
-                        { "Access-Control-Allow-Origin", "*" }
+                        { "Access-Control-Allow-Origin", "*" },
+                        { "Cache-Control", "no-cache" }
                     },
                     Body = JsonConvert.SerializeObject(body)
                 };
@@ -445,7 +459,8 @@ namespace MTGLambda
                 Headers = new Dictionary<string, string>
                 {
                     { "Content-Type", "application/json" },
-                    { "Access-Control-Allow-Origin", "*" }
+                    { "Access-Control-Allow-Origin", "*" },
+                    { "Cache-Control", "no-cache" }
                 }
             };
 
@@ -478,7 +493,8 @@ namespace MTGLambda
                     StatusCode = (int)HttpStatusCode.InternalServerError,
                     Headers = new Dictionary<string, string> {
                         { "Content-Type", "application/json" },
-                        { "Access-Control-Allow-Origin", "*" }
+                        { "Access-Control-Allow-Origin", "*" },
+                        { "Cache-Control", "no-cache" }
                     },
                     Body = JsonConvert.SerializeObject(body)
                 };
@@ -488,6 +504,66 @@ namespace MTGLambda
             }
 
             LambdaLogger.Log($"Leaving: SaveUserDeck({ JsonConvert.SerializeObject(response) })");
+            return response;
+        }
+
+        /// <summary>
+        /// Entry point for loading user decks
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public APIGatewayProxyResponse LoadUserDeck(APIGatewayProxyResponse request, ILambdaContext context)
+        {
+            LambdaLogger.Log($"Entering: LoadUserDeck({ JsonConvert.SerializeObject(request) })");
+
+            var response = new APIGatewayProxyResponse()
+            {
+                Headers = new Dictionary<string, string>
+                {
+                    { "Content-Type", "application/json" },
+                    { "Access-Control-Allow-Origin", "*" }
+                }
+            };
+
+            try
+            {
+                if (request.Body == "CloudWatch")
+                    return response;
+
+                var requestDto = JsonConvert.DeserializeObject<LoadDeckRequest>(request.Body);
+
+                var MTGService = ServiceFactory.GetService<MTGService>();
+
+                var deckResponse = MTGService.LoadUserDeck(requestDto);
+
+                response.Body = JsonConvert.SerializeObject(deckResponse);
+                response.StatusCode = (int)HttpStatusCode.OK;
+            }
+            catch(Exception exp)
+            {
+                Dictionary<string, string> body = new Dictionary<string, string>()
+                {
+                    { "Message", "y u breaking my stuff?" },
+                    { "Error", $"This is all you get, here's your peasant error: { exp.Message }" }
+                };
+
+                var errorResponse = new APIGatewayProxyResponse
+                {
+                    StatusCode = (int)HttpStatusCode.InternalServerError,
+                    Headers = new Dictionary<string, string> {
+                        { "Content-Type", "application/json" },
+                        { "Access-Control-Allow-Origin", "*" }
+                    },
+                    Body = JsonConvert.SerializeObject(body)
+                };
+
+                LambdaLogger.Log($"Leaving: LoadUserDeck({ JsonConvert.SerializeObject(errorResponse) })");
+                return errorResponse;
+            }
+
+            LambdaLogger.Log($"Leaving: LoadUserDeck({ JsonConvert.SerializeObject(response) })");
+
             return response;
         }
 
@@ -505,7 +581,9 @@ namespace MTGLambda
                 Headers = new Dictionary<string, string> { { "Content-Type", "application/json" },
                                                            { "Access-Control-Allow-Origin", "*" },
                                                            { "Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS" },
-                                                           { "Access-Control-Allow-Headers", "*"} },
+                                                           { "Access-Control-Allow-Headers", "access-control-allow-origin,cache-control,content-length,content-type," +
+                                                             "date,status,via,x-amz-apigw-id,x-amz-cf-id,x-amz-cf-pop,x-amzn-requestid,x-amzn-trace-id,x-cache"                                 }
+                                                         },
                 StatusCode = (int)HttpStatusCode.OK,
                 Body = string.Empty
             };

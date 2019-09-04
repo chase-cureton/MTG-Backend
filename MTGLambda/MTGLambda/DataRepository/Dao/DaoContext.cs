@@ -118,6 +118,19 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             }
         }
 
+        public async Task DeleteTableItemsAsync<T>(IEnumerable<T> items)
+        {
+            try
+            {
+                await DynamoDbHelper.DeleteAsync<T>(items);
+            }
+            catch(Exception exp)
+            {
+                LambdaLogger.Log($"Error occured during DeleteTableItems({ JsonConvert.SerializeObject(items) })");
+                throw;
+            }
+        }
+
 
         //DONUT USE
         public UpsertTableItemResponse UpsertTableItems(UpsertTableItemsRequest request)

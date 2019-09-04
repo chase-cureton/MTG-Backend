@@ -51,6 +51,23 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             return FindAll(conditions);
         }
 
+        public IEnumerable<Card> FindFromNames(List<string> names)
+        {
+            if (names.Any())
+            {
+                var objects = names.Select(x => (object)x).ToArray();
+
+                var conditions = new List<ScanCondition>
+                {
+                    new ScanCondition("Name", ScanOperator.In, objects)
+                };
+
+                return FindAll(conditions);
+            }
+
+            return new List<Card>();
+        }
+
         public IEnumerable<Card> FindFromNameAndManaCost(GetCardRequest request)
         {
             LambdaLogger.Log($"Entering: FindFromNameAndManaCost({ JsonConvert.SerializeObject(request) }");
@@ -76,17 +93,17 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             var results = FindAll(conditions);
 
-            if (request.ColorFilter.ContainsValue(false))
-            {
-                var negateColors = request.ColorFilter
-                                          .Where(x => x.Value == false)
-                                          .Select(x => x.Key)
-                                          .ToList();
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
 
-                foreach (var negateColor in negateColors)
-                    results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
 
-            }
+            //}
 
             return results;
         }
@@ -118,17 +135,17 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             var results = FindAll(conditions);
 
-            if (request.ColorFilter.ContainsValue(false))
-            {
-                var negateColors = request.ColorFilter
-                                          .Where(x => x.Value == false)
-                                          .Select(x => x.Key)
-                                          .ToList();
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
 
-                foreach (var negateColor in negateColors)
-                    results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
 
-            }
+            //}
 
             return results;
         }
@@ -162,17 +179,17 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             var results = FindAll(conditions);
 
-            if (request.ColorFilter.ContainsValue(false))
-            {
-                var negateColors = request.ColorFilter
-                                          .Where(x => x.Value == false)
-                                          .Select(x => x.Key)
-                                          .ToList();
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
 
-                foreach (var negateColor in negateColors)
-                    results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
 
-            }
+            //}
 
             return results;
         }
@@ -193,17 +210,17 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             var results = FindAll(conditions);
 
-            if (request.ColorFilter.ContainsValue(false))
-            {
-                var negateColors = request.ColorFilter
-                                          .Where(x => x.Value == false)
-                                          .Select(x => x.Key)
-                                          .ToList();
+            //if (request.ColorFilter.ContainsValue(false))
+            //{
+            //    var negateColors = request.ColorFilter
+            //                              .Where(x => x.Value == false)
+            //                              .Select(x => x.Key)
+            //                              .ToList();
 
-                foreach (var negateColor in negateColors)
-                    results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
+            //    foreach (var negateColor in negateColors)
+            //        results = results.Where(x => !x.ColorIdentity.Contains(negateColor)).ToList();
 
-            }
+            //}
 
             return results;
         }
@@ -605,10 +622,11 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
                 conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.Contains, colorCondition));
             }
 
-            foreach(var negateCondition in excludeList)
-            {
-                conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.NotContains, negateCondition));
-            }
+            //Doesn't work well for what I'm trying to do. Better to just negate them in memory on the other side
+            //foreach(var negateCondition in excludeList)
+            //{
+            //    conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.NotContains, negateCondition));
+            //}
 
             //if (containsList.Any())
             //    conditions.Add(new ScanCondition("ColorIdentity", ScanOperator.Contains, containsList.ToArray()));
@@ -662,13 +680,35 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
                 }
             }
 
+            if (queryList.Contains("Creature"))
+            {
+                queryList.Add("Artifact Creature");
+                queryList.Add("Enchantment Creature");
+                queryList.Add("Enchantment Artifact Creature");
+            }
+            else
+            {
+                if (queryList.Contains("Artifact"))
+                {
+                    queryList.Add("Artifact Creature");
+                }
+
+                if (queryList.Contains("Enchantment"))
+                {
+                    queryList.Add("Enchantment Creature");
+                }
+            }
+
+            if (queryList.Contains("Planeswalker"))
+                queryList.Add("Legendary Planeswalker");
+
             LambdaLogger.Log($"Query List: { JsonConvert.SerializeObject(queryList) }");
 
             if (queryList.Any())
             {
                 var objects = queryList.Select(x => (object)x).ToArray();
 
-                var condition = new ScanCondition("BaseType", ScanOperator.Contains, objects);
+                var condition = new ScanCondition("BaseType", ScanOperator.In, objects);
                 conditions.Add(condition);
             }
         }

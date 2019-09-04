@@ -221,6 +221,14 @@ namespace MTGLambda.MTGLambda.Helpers.DynamoDb
             await _context.ExecuteBatchWriteAsync(new BatchWrite[] { batch });
         }
 
+        public static async Task DeleteAsync<T>(IEnumerable<T> list)
+        {
+            foreach(var item in list)
+            {
+                await _context.DeleteAsync<T>(item);
+            }
+        }
+
         /// <summary>
         /// Scans table and returns results based on conditions
         /// Note: Only to be used for small record size tables

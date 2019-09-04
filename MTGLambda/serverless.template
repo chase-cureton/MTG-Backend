@@ -115,7 +115,39 @@
 				"Handler": "MTGLambda::MTGLambda.Functions::Cors",
 				"Runtime": "dotnetcore2.1",
 				"CodeUri": "",
-				"MemorySize": 256,
+				"MemorySize": 1024,
+				"Timeout": 30,
+				"Role": null,
+				"Policies": [
+				  "AWSLambdaBasicExecutionRole"
+				],
+				"Events": {
+				}
+			}
+		},
+		"SaveUserDeck": {
+			"Type": "AWS::Serverless::Function",
+			"Properties": {
+				"Handler": "MTGLambda::MTGLambda.Functions::SaveUserDeck",
+				"Runtime": "dotnetcore2.1",
+				"CodeUri": "",
+				"MemorySize": 1024,
+				"Timeout": 30,
+				"Role": null,
+				"Policies": [
+				  "AWSLambdaBasicExecutionRole"
+				],
+				"Events": {
+				}
+			}
+		},
+		"LoadUserDeck": {
+			"Type": "AWS::Serverless::Function",
+			"Properties": {
+				"Handler": "MTGLambda::MTGLambda.Functions::LoadUserDeck",
+				"Runtime": "dotnetcore2.1",
+				"CodeUri": "",
+				"MemorySize": 1024,
 				"Timeout": 30,
 				"Role": null,
 				"Policies": [

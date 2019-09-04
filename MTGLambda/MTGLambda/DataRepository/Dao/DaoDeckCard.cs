@@ -32,5 +32,16 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
 
             return FindAll(conditions);
         }
+
+        public IEnumerable<DeckCard> FindFromUserAndDeckName(string username, string deckName)
+        {
+            var conditions = new List<ScanCondition>
+            {
+                new ScanCondition("DeckName", ScanOperator.Equal, deckName),
+                new ScanCondition("UserName", ScanOperator.Equal, username)
+            };
+
+            return FindAll(conditions);
+        }
     }
 }

@@ -104,6 +104,18 @@ namespace MTGLambda.MTGLambda.DataRepository.Dao
             }
         }
 
+        public async Task Delete(IEnumerable<T> deleteItems)
+        {
+            try
+            {
+                await _daoContext.DeleteTableItemsAsync<T>(deleteItems);
+            }
+            catch(Exception exp)
+            {
+                throw exp;
+            }
+        }
+
         private static Document ContextRequestEntity(T t)
         {
             return Document.FromJson(JsonConvert.SerializeObject(t));
